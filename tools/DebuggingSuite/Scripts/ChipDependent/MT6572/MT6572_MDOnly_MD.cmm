@@ -1,0 +1,110 @@
+ENTRY &opt_reset
+;; MT6572_MDOnly_MD.cmm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;     START Cortex-R4 VIEW                                   ;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+do CR4_connect.cmm &opt_reset
+
+IF &OPT_CFG_GPIO==1
+(
+    ;; Set MD related GPIO for AP_SETTING==1 (AP setting done by CMM)
+    
+    ; Set GPIO pin to MD UART (Provide by: Antony Liao)
+    ; Set 0x100053CC[31:28].GPIO103 = 0xD ([31]: 1,mode is set; [30:28]: 5, target aux. mode)
+    ; Set 0x100053DC[3:0].GPIO104 = 0xD
+    
+    D.S SD:(&AP_APB_BASE+0x53CC) %LE %LONG 0xD0000000
+    D.S SD:(&AP_APB_BASE+0x53DC) %LE %LONG 0x0000000D
+
+
+
+    ; Set GPIO pin to MD SIM
+    ;uint32 mode = GPIO_MODE0(0x1000_5300);
+    ;GPIO_MODE0(0x1000_5300) = mode | (0x1<<0)| (0x1<<4)| (0x1<<8)| (0x1<<12); 	// GPIO0 mode=SIM2_SCLK, GPIO1 mode=SIM2_SIO, GPIO2 mode=SIM1_SCLK, GPIO3 mode=SIM1_SIO
+    ;GPIO_DIR0_CLR(0x1000_5008) = (0x1<<1) | (0x1<<3);				//GPIO1 dir=input, GPIO3 dir=input
+    ;GPIO_DIR0_SET(0x1000_5004) = (0x1<<0) | (0x1<<2);				//GPIO0 dir=output, GPIO2 dir=output
+
+    D.S SD:(&AP_APB_BASE+0x5300) %LE %LONG data.long(sd:(&AP_APB_BASE+0x5300))|(1<<0)|(1<<4)|(1<<8)|(1<<0xc)
+    D.S SD:(&AP_APB_BASE+0x5008) %LE %LONG (1<<1)|(1<<3)
+    D.S SD:(&AP_APB_BASE+0x5004) %LE %LONG (1<<0)|(1<<2)
+)
+
+; Disable AP WDT
+print "Disable AP MD WDT"
+D.S SD:(0xA0007000) %LE %LONG 0x22000000
+
+
+; Disable WDT
+print "Disable MD WDT"
+print "[0x&MD_WDT_BASE] <- 0x2200"
+D.S SD:(&MD_WDT_BASE+0x0000) %LE %WORD 0x2200
+
+; bypass_CTIRQ1_precision_check
+; Avoiding assert at CTIRQ1/2
+print "L1 Assert Bypass" 
+print "[0x83070008] <- 0xABCD"
+D.S SD:0x83070008 %LE %WORD 0xABCD
+print "[0x83070010] <- 0x0003"
+D.S SD:0x83070010 %LE %WORD 0x0003     ; bit0: disable CTIRQ1/2 timing check
+
+; Remap CR4 bank F to bank 0 (Clear MD_MCU_CON0 bit31~30)
+D.S SD:0x80000100 %LE %LONG DATA.LONG(SD:0x80000100)&0x3FFFFFFF
+
+print "MD Boot Mode"
+print "[0x80000010] <- &OPT_MD_BOOT_MODE"
+; Boot Mode
+D.S SD:(0x80000010) %LE %LONG &OPT_MD_BOOT_MODE
+
+wait 4.s
+
+IF &OPT_LOAD_ELF==1
+(
+    print "Load MD ELF(Symbol Only)..."
+    D.LOAD.ELF &OPT_MD_ELF_PATH /RELPATH /PATH &OPT_MD_SRC_PATH /nocode
+)
+
+IF &OPT_LOAD_ELF==2
+(
+    print "Load MD ELF(Download)..."
+    D.LOAD.ELF &OPT_MD_ELF_PATH /RELPATH /PATH &OPT_MD_SRC_PATH
+)
+
+IF &OPT_CFG_TCM==1
+(
+    local &OPT_ITCM_ADDR
+    local &OPT_DTCM_ADDR
+    &OPT_ITCM_ADDR="0x"+Format.Hex(8, Image$$INTSRAM_CODE$$Base)
+    &OPT_DTCM_ADDR="0x"+Format.Hex(8, Image$$INTSRAM_PHYSICAL_BOUNDARY$$Base)
+    print "Configure TCM ..."
+    print "ITCM &OPT_ITCM_ADDR"
+    ; Set BTCM Address
+    d.s C15:0x0019 %LE %LONG (&OPT_ITCM_ADDR|1)
+    print "DTCM &OPT_DTCM_ADDR"
+    ; Set ATCM Address
+    d.s C15:0x0119 %LE %LONG (&OPT_DTCM_ADDR|1)
+)
+
+IF &OPT_CFG_CACHE==1
+(
+    print "Configure Cache ... (Enable)"
+    d.s C15:0x0001 %LE %LONG (data.long(C15:0x0001)|(1<<2)|(1<<0xc))
+)
+
+IF &OPT_CFG_MPU==1
+(
+    print "Configure MPU ... (Enable)"
+    do "Cortex-R_MPU_Bushang_Recover.cmm"
+)
+
+IF &OPT_CFG_PLL==1
+(
+    print "Configure MD PLL ..."
+    do "md_pll_init.cmm"
+)
+
+;; RamDisk Handling
+
+
+do Ramfs_config.cmm
+

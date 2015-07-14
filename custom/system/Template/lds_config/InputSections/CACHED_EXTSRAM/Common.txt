@@ -1,0 +1,15 @@
+         * (.data*)
+         KEEP(* (Keep_DATA))
+         * (CACHED_EXTSRAM_RW)
+         RELEASE_VERNO_RW$$Base = .;
+         * (RELEASE_VERNO_RW)
+         RELEASE_VERNO_RW$$Limit = .;
+         RELEASE_VERNO_RW$$Length = ABSOLUTE(RELEASE_VERNO_RW$$Limit - RELEASE_VERNO_RW$$Base);
+         RELEASE_BRANCH_RW$$Base = .;
+         * (RELEASE_BRANCH_RW)
+         RELEASE_BRANCH_RW$$Limit = .;
+         RELEASE_BRANCH_RW$$Length = ABSOLUTE(RELEASE_BRANCH_RW$$Limit - RELEASE_BRANCH_RW$$Base);
+         BUILD_TIME_RW$$Base = .;
+         * (BUILD_TIME_RW)
+         BUILD_TIME_RW$$Limit = .;
+         BUILD_TIME_RW$$Length = ABSOLUTE(BUILD_TIME_RW$$Limit - BUILD_TIME_RW$$Base);

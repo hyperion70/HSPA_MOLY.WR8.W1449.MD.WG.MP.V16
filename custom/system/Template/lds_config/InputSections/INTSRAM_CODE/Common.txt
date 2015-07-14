@@ -1,0 +1,3 @@
+            . = ALIGN(0x8);
+            * (INTSRAM_ROCODE*)
+            . = ALIGN(0x8); /* since some project will use STRD to do region init, the base and end address of this section should be 8 byte alignment */

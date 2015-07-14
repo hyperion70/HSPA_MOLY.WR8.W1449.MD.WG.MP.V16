@@ -1,0 +1,28 @@
+; MT6580 Set GPIO pin to MD UART (confirm with Dongming Lee)
+; check 0x100050D4[6:4] UART_Tx(GPIO65) = 0x5
+; check 0x100050D4[14:12] UART_Rx(GPIO67) = 0x5
+
+LOCAL &UART_GPIO
+&UART_GPIO=&AP_APB_BASE+0x50D4
+&UART_MASK=0x00007070 ;0111_0000,0111_0000
+&UART_VAL=0x00005050  ;0101_0000,0101_0000
+GOSUB SUB_SETGPIO &UART_GPIO &UART_MASK &UART_VAL UART
+
+ENDDO
+
+; ======================= SUB ===========================
+SUB_SETGPIO: ;Read and Modify &GPIO_BASE
+ENTRY &GPIO_BASE &MASK &VALUE &HintString 
+
+;Read
+&tmp=DATA.LONG(SD:&GPIO_BASE)
+PRINT "READ &HintString &GPIO_BASE=&tmp"
+
+;Modify
+&tmp=&tmp&(~&MASK)|&VALUE
+D.S SD:(&GPIO_BASE) %LE %LONG &tmp
+;Readback to confirm
+&tmp2=DATA.LONG(SD:&GPIO_BASE)
+PRINT "SET &HintString &GPIO_BASE=&tmp (Read back to confirm=&tmp2)"
+
+RETURN

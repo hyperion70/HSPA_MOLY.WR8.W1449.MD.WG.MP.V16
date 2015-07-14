@@ -1,0 +1,19 @@
+[Device Choice]
+MAIN_BACKLIGHT
+SUB_BACKLIGHT
+KP_LED
+VIBRATOR
+FLASH_LIGHT
+OTHERS_FUNCTION
+NONE
+
+
+
+[pwm.h_HEADER]
+#ifndef _PWM_DRV_H
+#define _PWM_DRV_H
+
+
+[pwm.h_TAILER]
+#endif /* _PWM_DRV_H */
+

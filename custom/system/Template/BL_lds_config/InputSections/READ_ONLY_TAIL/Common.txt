@@ -1,0 +1,32 @@
+         * (EXCLUDE_FILE (*sha1_engine.obj
+                          *md5_engine.obj
+                          *br_crypto_asm_gcc.obj         
+                          *br_crypto_drv*.obj           
+                          *br_sha256_sw.obj                
+                          *br_sha256_hw.obj               
+                          *br_sha1_sw.obj                  
+                          *br_sha1_hw.obj                   
+                          *br_M1_RSA.obj                  
+                          *br_crypto_platform.obj         
+                         ) .text*)
+         * (EXCLUDE_FILE (*sha1_engine.obj
+                          *md5_engine.obj
+                          *br_crypto_asm_gcc.obj         
+                          *br_crypto_drv*.obj           
+                          *br_sha256_sw.obj                
+                          *br_sha256_hw.obj               
+                          *br_sha1_sw.obj                  
+                          *br_sha1_hw.obj                   
+                          *br_M1_RSA.obj                  
+                          *br_crypto_platform.obj         
+                         ) .rodata*)
+         * (EMIINITCODE)
+         * (INTSRAM_ROCODE)
+         * (SNORCODE)
+         * (C$$code)
+         * (RegionInit)
+         * (INIT_RODATA)
+         * (RO-CODE)
+         * (CRYPTO_ASM)
+         * (i.*)
+         * (READ_ONLY_TAIL)

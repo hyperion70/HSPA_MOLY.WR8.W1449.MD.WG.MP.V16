@@ -1,0 +1,332 @@
+;;================================================
+;; CHIP:        MT6572
+;; PURPOSE:     EMI PLL Init Sequence
+;; CREATE_DATE: 2013/01/28 
+;; LAST_UPDATE: 2013/02/04
+;; TESTED:      YES (T32 Simulator/FPGA)
+;;================================================
+;;================================================
+;; CMM Input Option
+;;================================================
+;; FPGA       => init for FPGA
+;; LPDDR2-400 => init for EVB LPDDR2-400
+;; LPDDR2-533 => init for EVB LPDDR2-533
+;; LPDDR1-400 => init for EVB LPDDR-400
+;;=========================================
+
+;;================================================
+;; Options
+;;================================================
+;;-> @ EMI Init Mode 
+;; NOTE: This could be override by cmm input
+;; FPGA
+;; LPDDR2-400
+;; LPDDR2-533
+;; LPDDR1-400
+&DEFAULT_MODE="LPDDR2-400"
+
+;;================================================
+;; Variables
+;;================================================
+;; Register Base
+LOCAL &EMI_REG
+
+;;-> @ Register Base  Setting
+&EMI_REG=0x10004000
+&EMI_CONN=(&EMI_REG+0x00000068) ;EMI + 0068h	DRAM controller function configuration	EMI_CONN
+&EMI_IOCL=(&EMI_REG+0x00000328) ;EMI + 0328h	EMI IO MISC Control	EMI_IOCL
+&EMI_DRVA=(&EMI_REG+0x00000318) ;EMI + 0318h	EMI IO Driving Control A	EMI_DRVA
+&EMI_DRVB=(&EMI_REG+0x00000320) ;EMI + 0320h	EMI IO Driving Control	EMI_DRVB
+&EMI_DUCA=(&EMI_REG+0x000007D8) ;EMI + 07D8h	DDR RX duty auto tracking control register A	EMI_DUCA
+&EMI_DUCB=(&EMI_REG+0x000007E0) ;EMI + 07E0h	DDR RX duty auto tracking control register B	EMI_DUCB
+&EMI_DUCE=(&EMI_REG+0x000007F8) ;EMI + 07F8h	DDR RX duty auto tracking control register E	EMI_DUCE
+&EMI_GENA=(&EMI_REG+0x00000070) ;EMI + 0070h	EMI General Control Register A	EMI_GENA
+&EMI_GEND=(&EMI_REG+0x00000088) ;EMI + 0088h	EMI General Control Register D	EMI_GEND
+&EMI_CONJ=(&EMI_REG+0x00000048) ;EMI + 0048h	DRAM controller timing configuration I	EMI_CONJ
+&EMI_CONK=(&EMI_REG+0x00000050) ;EMI + 0050h	DRAM controller timing configuration II	EMI_CONK
+&EMI_CONL=(&EMI_REG+0x00000058) ;EMI + 0058h	DRAM controller timing configuration III	EMI_CONL
+&EMI_ODLJ=(&EMI_REG+0x000002A0) ;EMI + 02A0h	EMI IO Output Delay Line Control J	EMI_ODLJ
+&EMI_ODLN=(&EMI_REG+0x000002C0) ;EMI + 02C0h	EMI IO Output Delay Line Control N	EMI_ODLN
+&EMI_CONI=(&EMI_REG+0x00000040) ;EMI + 0040h	DRAM MR/EMR	EMI_CONI
+&EMI_DDRV=(&EMI_REG+0x00000080) ;EMI + 0080h	DRAM driving calibration	EMI_DDRV
+&EMI_DRCT=(&EMI_REG+0x00000078) ;EMI + 0078h	EMI dummy read controls	EMI_DRCT
+&EMI_PPCT=(&EMI_REG+0x00000090) ;EMI + 0090h	EMI Performance and Power Control Register	EMI_PPCT
+&EMI_ABCT=(&EMI_REG+0x00000158) ;EMI + 0158h	EMI arbitration control register	EMI_ABCT
+&EMI_SLCT=(&EMI_REG+0x00000150) ;EMI + 0150h	EMI slave control register	EMI_SLCT
+&EMI_DQSA=(&EMI_REG+0x00000700) ;EMI + 0700h	DQSI auto-tracking delay control for CS[0]	EMI_DQSA
+&EMI_DQSB=(&EMI_REG+0x00000708) ;EMI + 0708h	DQSI auto-tracking delay control for CS[0]	EMI_DQSB
+&EMI_DQSC=(&EMI_REG+0x00000710) ;EMI + 0710h	DQSI auto-tracking delay control for CS[1]	EMI_DQSC
+&EMI_DQSD=(&EMI_REG+0x00000718) ;EMI + 0718h	DQSI auto-tracking delay control for CS[1]	EMI_DQSD
+&EMI_DQSI=(&EMI_REG+0x00000740) ;EMI + 0740h	EMI DQSI auto-tracking enable control	EMI_DQSI
+
+LOCAL &EMI_DQSI_16
+
+;;================================================
+;; Control Code (With C Code)
+;;================================================
+;;-> @ Entry Process
+ENTRY &MODE
+IF ("&MODE"=="")
+(
+    &MODE="&DEFAULT_MODE"
+)
+
+;;->     
+;;-> @ << EMI Init Flow Start >>
+IF ("&MODE"=="FPGA")
+(
+;;-> @ [FPGA]
+    ;EMI Setting
+    D.S SD:0x10000000 %LE %LONG 0x22000064
+    
+    ; LPDDR2
+    D.S SD:(&EMI_REG+0x0088) %LE %LONG 0x00030000		;EMI_GEND	0x0001_0000
+    D.S SD:(&EMI_REG+0x0070) %LE %LONG 0x00000202		;EMI_GENA	0x0000_0202
+    D.S SD:(&EMI_REG+0x0068) %LE %LONG 0x00350801		;EMI_CONN	0x0035_0801
+    
+    wait 1.ms
+    
+    D.S SD:(&EMI_REG+0x0070) %LE %LONG 0x00000212		;EMI_GENA	0x0000_0212
+    D.S SD:(&EMI_REG+0x0040) %LE %LONG 0x003f0000		;EMI_CONI	0x003f_0000
+    
+    D.S SD:(&EMI_REG+0x0048) %LE %LONG 0x00021011		;EMI_CONJ	0x0002_1011
+    D.S SD:(&EMI_REG+0x0050) %LE %LONG 0x020B0100		;EMI_CONK	0x020B_0100
+    D.S SD:(&EMI_REG+0x0058) %LE %LONG 0x20423096		;EMI_CONL	0x2042_3096
+    
+    D.S SD:(&EMI_REG+0x0700) %LE %LONG 0x00400040		;EMI_DQSA	0x0040_0040
+    D.S SD:(&EMI_REG+0x0708) %LE %LONG 0x00400040		;EMI_DQSB	0x0040_0040
+    D.S SD:(&EMI_REG+0x0710) %LE %LONG 0x00400040		;EMI_DQSC	0x0040_0040
+    D.S SD:(&EMI_REG+0x0718) %LE %LONG 0x00400040		;EMI_DQSD	0x0040_0040
+        
+    ;    D.S SD:(&EMI_REG+0x0240) %LE %LONG 0x00000001		;EMI_IDLI	0x0000_0001
+        
+    D.S SD:(&EMI_REG+0x0318) %LE %LONG 0x88888888		;EMI_DRVA	0x8888_8888
+    D.S SD:(&EMI_REG+0x0320) %LE %LONG 0x00880000		;EMI_DRVB	0x0088_0000
+    
+    D.S SD:(&EMI_REG+0x0308) %LE %LONG 0x55050555		;EMI_DUTB	0x5505_0555
+    
+    wait 1.ms
+    
+    ; LPDDR2 init flow
+    D.S SD:(&EMI_REG+0x0068) %LE %LONG 0x20350801		;EMI_CONN	0x2035_0801
+    wait 1.ms
+    D.S SD:(&EMI_REG+0x0068) %LE %LONG 0x00350801		;EMI_CONN	0x0035_0801
+    wait 1.ms
+    
+    D.S SD:(&EMI_REG+0x0040) %LE %LONG 0x00000000		;EMI_CONI	0x0000_0000
+    D.S SD:(&EMI_REG+0x0080) %LE %LONG 0x00000010		;EMI_DDRV	0x0000_0010
+    D.S SD:(&EMI_REG+0x0068) %LE %LONG 0x40350801		;EMI_CONN	0x4035_0801
+    wait 1.ms
+    D.S SD:(&EMI_REG+0x0068) %LE %LONG 0x00350801		;EMI_CONN	0x0035_0801
+    wait 1.ms
+    
+    D.S SD:(&EMI_REG+0x0040) %LE %LONG 0x23010000		;EMI_CONI	0x2301_0000
+    D.S SD:(&EMI_REG+0x0068) %LE %LONG 0x20350801		;EMI_CONN	0x2035_0801
+    wait 1.ms
+    D.S SD:(&EMI_REG+0x0068) %LE %LONG 0x00350801		;EMI_CONN	0x0035_0801
+    wait 1.ms
+    
+    D.S SD:(&EMI_REG+0x0040) %LE %LONG 0x02020000		;EMI_CONI	0x0202_0000
+    D.S SD:(&EMI_REG+0x0068) %LE %LONG 0x20350801		;EMI_CONN	0x2035_0801
+    wait 1.ms
+    D.S SD:(&EMI_REG+0x0068) %LE %LONG 0x00350801		;EMI_CONN	0x0035_0801
+    wait 1.ms
+    
+    D.S SD:(&EMI_REG+0x0068) %LE %LONG 0x00350907		;EMI_CONN	0x0035_0907
+    D.S SD:(&EMI_REG+0x0158) %LE %LONG 0x00030001		;EMI_ABCT	0x0003_0001
+    D.S SD:(&EMI_REG+0x0078) %LE %LONG 0x00000001		;EMI_DRCT	0x0000_0001
+    D.S SD:(&EMI_REG+0x0090) %LE %LONG 0xFFFFFF00		;EMI_PPCT	0xFFFF_FF00
+    D.S SD:(&EMI_REG+0x0070) %LE %LONG 0x0000021A		;EMI_GENA	0x0000_021A
+    wait 1.ms
+; END
+)
+ELSE IF ("&MODE"=="LPDDR2-400")
+(
+;;-> @ [LPDDR2-400]
+    d.s asd:(&EMI_CONN) %le %long 0x00450800 ;EMI_CONN	0x0045_0800
+    d.s asd:(&EMI_IOCL) %le %long 0x10030000 ;EMI_IOCL	0x1003_0000
+    d.s asd:(&EMI_DRVA) %le %long 0xCCCCCCCC ;EMI_DRVA	0xCCCC_CCCC
+    d.s asd:(&EMI_DRVB) %le %long 0x00CC0000 ;EMI_DRVB	0x00CC_0000
+    d.s asd:(&EMI_DUCA) %le %long 0x00000000 ;EMI_DUCA	0x0000_0000
+    d.s asd:(&EMI_DUCB) %le %long 0x00000000 ;EMI_DUCB	0x0000_0000
+    d.s asd:(&EMI_DUCE) %le %long 0x00000000 ;EMI_DUCE	0x0000_0000
+    d.s asd:(&EMI_GENA) %le %long 0x00000202 ;EMI_GENA	0x0000_0202
+    wait 1.ms ;delay	1 us
+    d.s asd:(&EMI_GENA) %le %long 0x00000212 ;EMI_GENA	0x0000_0212
+    d.s asd:(&EMI_GEND) %le %long 0x00010000 ;EMI_GEND	0x0001_0000
+    d.s asd:(&EMI_CONJ) %le %long 0x001C231A ;EMI_CONJ	0x001C_231A
+    d.s asd:(&EMI_CONK) %le %long 0x1A050C00 ;EMI_CONK	0x1A05_0C00
+    d.s asd:(&EMI_CONL) %le %long 0x20425086 ;EMI_CONL	0x2042_5086
+    d.s asd:(&EMI_ODLJ) %le %long 0x08080808 ;EMI_ODLJ	0x0808_0808
+    d.s asd:(&EMI_ODLN) %le %long 0x08080808 ;EMI_ODLN	0x0808_0808
+    d.s asd:(&EMI_CONI) %le %long 0x003F0000 ;EMI_CONI	0x003F_0000
+    d.s asd:(&EMI_CONN) %le %long 0x20450800 ;EMI_CONN	0x2045_0800
+    wait 1.ms ;delay	5 us
+    d.s asd:(&EMI_CONN) %le %long 0x00450800 ;EMI_CONN	0x0045_0800
+    wait 1.ms ;delay	10 us
+    d.s asd:(&EMI_CONI) %le %long 0x00000000 ;EMI_CONI	0x0000_0000
+    d.s asd:(&EMI_DDRV) %le %long 0x00000010 ;EMI_DDRV	0x0000_0010
+    d.s asd:(&EMI_CONN) %le %long 0x40450800 ;EMI_CONN	0x4045_0800
+    wait 1.ms ;delay	5 us
+    d.s asd:(&EMI_CONN) %le %long 0x00450800 ;EMI_CONN	0x0045_0800
+    d.s asd:(&EMI_DDRV) %le %long 0x0000FF13 ;EMI_DDRV	0x0000_FF13
+    wait 1.ms ;delay	5 us
+    d.s asd:(&EMI_DDRV) %le %long 0x00000010 ;EMI_DDRV	0x0000_0010
+    d.s asd:(&EMI_CONI) %le %long 0x23010000 ;EMI_CONI	0x2301_0000
+    d.s asd:(&EMI_CONN) %le %long 0x20450800 ;EMI_CONN	0x2045_0800
+    wait 1.ms ;delay	5 us
+    d.s asd:(&EMI_CONN) %le %long 0x00450800 ;EMI_CONN	0x0045_0800
+    d.s asd:(&EMI_CONI) %le %long 0x01020000 ;EMI_CONI	0x0102_0000
+    d.s asd:(&EMI_CONN) %le %long 0x20450800 ;EMI_CONN	0x2045_0800
+    wait 1.ms ;delay	5 us
+    d.s asd:(&EMI_CONN) %le %long 0x00450B12 ;EMI_CONN	0x0045_0B12
+    d.s asd:(&EMI_GENA) %le %long 0x0000821e ;EMI_GENA	0x0000_821e
+    d.s asd:(&EMI_DRCT) %le %long 0x00000001 ;EMI_DRCT	0x0000_0001
+    d.s asd:(&EMI_PPCT) %le %long 0xFFDFBF0A ;EMI_PPCT	0xFFDF_BF0A
+    d.s asd:(&EMI_ABCT) %le %long 0xAA300001 ;EMI_ABCT	0xAA30_0001
+    d.s asd:(&EMI_SLCT) %le %long 0x3F183F00 ;EMI_SLCT	0x3F18_3F00
+    wait 1.ms ;delay	10 us
+    
+;Run data_train or input EMI_DQSA~D	0x00C0_00C0
+    d.s asd:(&EMI_DQSA) %le %long 0x00C000C0 ;Run data_train or input EMI_DQSA~D	0x00C0_00C0
+    d.s asd:(&EMI_DQSB) %le %long 0x00C000C0 ;Run data_train or input EMI_DQSA~D	0x00C0_00C0
+    d.s asd:(&EMI_DQSC) %le %long 0x00C000C0 ;Run data_train or input EMI_DQSA~D	0x00C0_00C0
+    d.s asd:(&EMI_DQSD) %le %long 0x00C000C0 ;Run data_train or input EMI_DQSA~D	0x00C0_00C0
+    
+    d.s asd:(&EMI_DQSI) %le %long 0x3000080F ;EMI_DQSI	0x3000_080F
+    ;Wait auto-tune done
+    &EMI_DQSI_16=data.long(asd:(&EMI_DQSI))
+    &EMI_DQSI_16=&EMI_DQSI_16&(0x00010000)
+    WHILE (&EMI_DQSI_16==0x00000000)
+    (
+        &EMI_DQSI_16=data.long(asd:(&EMI_DQSI))
+        &EMI_DQSI_16=&EMI_DQSI_16&(0x00010000)
+    )
+    d.s asd:(&EMI_DQSI) %le %long 0x1000080F ;EMI_DQSI	0x1000_080F
+
+)
+ELSE IF ("&MODE"=="LPDDR2-533")
+(
+;;-> @ [LPDDR2-533]
+    d.s asd:(&EMI_CONN) %le %long 0x00450800 ;EMI_CONN	0x0045_0800
+    d.s asd:(&EMI_IOCL) %le %long 0x10030000 ;EMI_IOCL	0x1003_0000
+    d.s asd:(&EMI_DRVA) %le %long 0xCCCCCCCC ;EMI_DRVA	0xCCCC_CCCC
+    d.s asd:(&EMI_DRVB) %le %long 0x00CC0000 ;EMI_DRVB	0x00CC_0000
+    d.s asd:(&EMI_DUCA) %le %long 0x00000000 ;EMI_DUCA	0x0000_0000
+    d.s asd:(&EMI_DUCB) %le %long 0x00000000 ;EMI_DUCB	0x0000_0000
+    d.s asd:(&EMI_DUCE) %le %long 0x00000000 ;EMI_DUCE	0x0000_0000
+    d.s asd:(&EMI_GENA) %le %long 0x00001A02 ;EMI_GENA	0x0000_1A02
+    wait 1.ms ;delay	1 us
+    d.s asd:(&EMI_GENA) %le %long 0x00001A12 ;EMI_GENA	0x0000_1A12
+    d.s asd:(&EMI_GEND) %le %long 0x00010000 ;EMI_GEND	0x0001_0000
+    d.s asd:(&EMI_CONJ) %le %long 0x40263763 ;EMI_CONJ	0x4026_3763
+    d.s asd:(&EMI_CONK) %le %long 0x23051000 ;EMI_CONK	0x2305_1000
+    d.s asd:(&EMI_CONL) %le %long 0x60428098 ;EMI_CONL	0x6042_8098
+    d.s asd:(&EMI_ODLJ) %le %long 0x08080808 ;EMI_ODLJ	0x0808_0808
+    d.s asd:(&EMI_ODLN) %le %long 0x08080808 ;EMI_ODLN	0x0808_0808
+    d.s asd:(&EMI_CONI) %le %long 0x003F0000 ;EMI_CONI	0x003F_0000
+    d.s asd:(&EMI_CONN) %le %long 0x20450800 ;EMI_CONN	0x2045_0800
+    wait 1.ms ;delay	5 us
+    d.s asd:(&EMI_CONN) %le %long 0x00450800 ;EMI_CONN	0x0045_0800
+    wait 1.ms ;delay	10 us
+    d.s asd:(&EMI_CONI) %le %long 0x00000000 ;EMI_CONI	0x0000_0000
+    d.s asd:(&EMI_DDRV) %le %long 0x00000010 ;EMI_DDRV	0x0000_0010
+    d.s asd:(&EMI_CONN) %le %long 0x40450800 ;EMI_CONN	0x4045_0800
+    wait 1.ms ;delay	5 us
+    d.s asd:(&EMI_CONN) %le %long 0x00450800 ;EMI_CONN	0x0045_0800
+    d.s asd:(&EMI_DDRV) %le %long 0x0000FF13 ;EMI_DDRV	0x0000_FF13
+    wait 1.ms ;delay	5 us
+    d.s asd:(&EMI_DDRV) %le %long 0x00000010 ;EMI_DDRV	0x0000_0010
+    d.s asd:(&EMI_CONI) %le %long 0x23010000 ;EMI_CONI	0x2301_0000
+    d.s asd:(&EMI_CONN) %le %long 0x20450800 ;EMI_CONN	0x2045_0800
+    wait 1.ms ;delay	5 us
+    d.s asd:(&EMI_CONN) %le %long 0x00450800 ;EMI_CONN	0x0045_0800
+    d.s asd:(&EMI_CONI) %le %long 0x02020000 ;EMI_CONI	0x0202_0000
+    d.s asd:(&EMI_CONN) %le %long 0x20450800 ;EMI_CONN	0x2045_0800
+    wait 1.ms ;delay	5 us
+    d.s asd:(&EMI_CONN) %le %long 0x00450B12 ;EMI_CONN	0x0045_0B12
+    d.s asd:(&EMI_GENA) %le %long 0x00009a1e ;EMI_GENA	0x0000_9a1e
+    d.s asd:(&EMI_DRCT) %le %long 0x00000001 ;EMI_DRCT	0x0000_0001
+    d.s asd:(&EMI_PPCT) %le %long 0xFFDFBF0A ;EMI_PPCT	0xFFDF_BF0A
+    d.s asd:(&EMI_ABCT) %le %long 0xAA300001 ;EMI_ABCT	0xAA30_0001
+    d.s asd:(&EMI_SLCT) %le %long 0x3F183F00 ;EMI_SLCT	0x3F18_3F00
+    wait 1.ms ;delay	10 us
+;Run data_train or input EMI_DQSA~D	0x00C0_00C0
+    d.s asd:(&EMI_DQSA) %le %long 0x00C000C0 ;Run data_train or input EMI_DQSA~D	0x00C0_00C0
+    d.s asd:(&EMI_DQSB) %le %long 0x00C000C0 ;Run data_train or input EMI_DQSA~D	0x00C0_00C0
+    d.s asd:(&EMI_DQSC) %le %long 0x00C000C0 ;Run data_train or input EMI_DQSA~D	0x00C0_00C0
+    d.s asd:(&EMI_DQSD) %le %long 0x00C000C0 ;Run data_train or input EMI_DQSA~D	0x00C0_00C0
+
+    d.s asd:(&EMI_DQSI) %le %long 0x3000080F ;EMI_DQSI	0x3000_080F
+    ;Wait auto-tune done	
+    &EMI_DQSI_16=data.long(asd:(&EMI_DQSI))
+    &EMI_DQSI_16=&EMI_DQSI_16&(0x00010000)
+    WHILE (&EMI_DQSI_16==0x00000000)
+    (
+        &EMI_DQSI_16=data.long(asd:(&EMI_DQSI))
+        &EMI_DQSI_16=&EMI_DQSI_16&(0x00010000)
+    )
+    d.s asd:(&EMI_DQSI) %le %long 0x1000080F ;EMI_DQSI	0x1000_080F
+
+)
+ELSE IF ("&MODE"=="LPDDR1-400")
+(
+;;-> @ [LPDDR1-400]
+    d.s asd:(&EMI_CONN) %le %long 0x00330000 ;EMI_CONN	0x0033_0000
+    d.s asd:(&EMI_IOCL) %le %long 0x10030000 ;EMI_IOCL	0x1003_0000
+    d.s asd:(&EMI_DRVA) %le %long 0x88888888 ;EMI_DRVA	0x8888_8888
+    d.s asd:(&EMI_DRVB) %le %long 0x00880000 ;EMI_DRVB	0x0088_0000
+    d.s asd:(&EMI_DUCA) %le %long 0x03030303 ;EMI_DUCA	0x0303_0303
+    d.s asd:(&EMI_DUCB) %le %long 0x03030303 ;EMI_DUCB	0x0303_0303
+    d.s asd:(&EMI_DUCE) %le %long 0x00010000 ;EMI_DUCE	0x0001_0000
+    d.s asd:(&EMI_GENA) %le %long 0x00000202 ;EMI_GENA	0x0000_0202
+    d.s asd:(&EMI_GEND) %le %long 0x00010000 ;EMI_GEND	0x0001_0000
+    d.s asd:(&EMI_CONI) %le %long 0x00334000 ;EMI_CONI	0x0033_4000
+    d.s asd:(&EMI_CONJ) %le %long 0x40192242 ;EMI_CONJ	0x4019_2242
+    d.s asd:(&EMI_CONK) %le %long 0x190B0000 ;EMI_CONK	0x190B_0000
+    d.s asd:(&EMI_CONL) %le %long 0x00425085 ;EMI_CONL	0x0042_5085
+    d.s asd:(&EMI_ODLJ) %le %long 0x08080808 ;EMI_ODLJ	0x0808_0808
+    d.s asd:(&EMI_ODLN) %le %long 0x08080808 ;EMI_ODLN	0x0808_0808
+    d.s asd:(&EMI_CONN) %le %long 0x10330000 ;EMI_CONN	0x1033_0000
+    wait 1.ms ;delay	5 us
+    d.s asd:(&EMI_CONN) %le %long 0x08330000 ;EMI_CONN	0x0833_0000
+    wait 1.ms ;delay	5 us
+    d.s asd:(&EMI_CONN) %le %long 0x04330000 ;EMI_CONN	0x0433_0000
+    wait 1.ms ;delay	5 us
+    d.s asd:(&EMI_CONN) %le %long 0x02330000 ;EMI_CONN	0x0233_0000
+    wait 1.ms ;delay	5 us
+    d.s asd:(&EMI_CONN) %le %long 0x01330000 ;EMI_CONN	0x0133_0000
+    wait 1.ms ;delay	5 us
+    d.s asd:(&EMI_CONN) %le %long 0x00330112 ;EMI_CONN	0x0033_0112
+    d.s asd:(&EMI_GENA) %le %long 0x0000828e ;EMI_GENA	0x0000_828e
+    d.s asd:(&EMI_DRCT) %le %long 0x00000001 ;EMI_DRCT	0x0000_0001
+    d.s asd:(&EMI_PPCT) %le %long 0xFFDFBF0A ;EMI_PPCT	0xFFDF_BF0A
+    d.s asd:(&EMI_ABCT) %le %long 0xAA300001 ;EMI_ABCT	0xAA30_0001
+    d.s asd:(&EMI_SLCT) %le %long 0x3F183F00 ;EMI_SLCT	0x3F18_3F00
+    wait 1.ms ;delay	10 us
+;Run data_train or input EMI_DQSA~D	0x00C0_00C0
+    d.s asd:(&EMI_DQSA) %le %long 0x00C000C0 ;Run data_train or input EMI_DQSA~D	0x00C0_00C0
+    d.s asd:(&EMI_DQSB) %le %long 0x00C000C0 ;Run data_train or input EMI_DQSA~D	0x00C0_00C0
+    d.s asd:(&EMI_DQSC) %le %long 0x00C000C0 ;Run data_train or input EMI_DQSA~D	0x00C0_00C0
+    d.s asd:(&EMI_DQSD) %le %long 0x00C000C0 ;Run data_train or input EMI_DQSA~D	0x00C0_00C0
+
+    d.s asd:(&EMI_DQSI) %le %long 0x3000080F ;EMI_DQSI	0x3000_080F
+    ;Wait auto-tune done	
+    &EMI_DQSI_16=data.long(asd:(&EMI_DQSI))
+    &EMI_DQSI_16=&EMI_DQSI_16&(0x00010000)
+    WHILE (&EMI_DQSI_16==0x00000000)
+    (
+        &EMI_DQSI_16=data.long(asd:(&EMI_DQSI))
+        &EMI_DQSI_16=&EMI_DQSI_16&(0x00010000)
+    )
+    d.s asd:(&EMI_DQSI) %le %long 0x1000080F ;EMI_DQSI	0x1000_080F
+)
+ELSE
+(
+    print "[FATAL][EMI] Illegal Mode (&MODE)"
+    END
+)
+print "[INFO][EMI] EMI Init Done (&MODE)"
+;; << PLL Init Flow End >>
+
+

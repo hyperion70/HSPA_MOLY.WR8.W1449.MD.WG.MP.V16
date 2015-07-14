@@ -1,0 +1,13 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; MT6589_MultiCore_AP.csf
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+do MT6589_MD_Info.cmm
+
+MULtiCore.COUNT 3
+MULtiCore.INDEX 1
+MULtiCore.PORT 10000
+
+print "Master: AP ARMCA7MPCORE"
+
+do MT6589_MultiCore_AP.cmm RESET

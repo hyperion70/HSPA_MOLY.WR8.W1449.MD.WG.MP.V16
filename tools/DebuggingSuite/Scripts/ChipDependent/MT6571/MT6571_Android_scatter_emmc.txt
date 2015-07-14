@@ -1,0 +1,198 @@
+############################################################################################################
+#
+#  General Setting 
+#    
+############################################################################################################
+- general: MTK_PLATFORM_CFG
+  info: 
+    - config_version: V1.1.1
+      platform: MT6571
+      project: mt6571v1_evb_emmc
+      storage: EMMC
+      boot_channel: MSDC_0
+      block_size: 0x20000
+############################################################################################################
+#
+#  Layout Setting
+#
+############################################################################################################
+- partition_index: SYS0
+  partition_name: PRELOADER
+  file_name: MT6571_TinyBL_EVB.bin             
+  is_download: true
+  type: SV5_BL_BIN
+  linear_start_addr: 0x0
+  physical_start_addr: 0x0
+  partition_size: 0x600000
+  region: EMMC_BOOT_1
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: BOOTLOADERS
+  reserve: 0x00
+
+- partition_index: SYS1
+  partition_name: SECCFG
+  file_name: NONE
+  is_download: false
+  type: NONE
+  linear_start_addr: 0x600000
+  physical_start_addr: 0x0
+  partition_size: 0x20000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS2
+  partition_name: SEC_RO
+  file_name: secro.img
+  is_download: false
+  type: NONE
+  linear_start_addr: 0x620000
+  physical_start_addr: 0x0
+  partition_size: 0x600000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS3
+  partition_name: UBOOT
+  file_name: lk.bin
+  is_download: false
+  type: NONE
+  linear_start_addr: 0xc20000
+  physical_start_addr: 0x0
+  partition_size: 0x100000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS4
+  partition_name: BOOTIMG
+  file_name: boot.img
+  is_download: false
+  type: NONE
+  linear_start_addr: 0xd20000
+  physical_start_addr: 0x0
+  partition_size: 0x100000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS5
+  partition_name: RECOVERY
+  file_name: recovery.img
+  is_download: false
+  type: NONE
+  linear_start_addr: 0xe20000
+  physical_start_addr: 0x0
+  partition_size: 0x100000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS6
+  partition_name: LOGO
+  file_name: logo.bin
+  is_download: false
+  type: NONE
+  linear_start_addr: 0xf20000
+  physical_start_addr: 0x0
+  partition_size: 0x100000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS7
+  partition_name: ANDROID
+  file_name: system.img
+  is_download: false
+  type: NONE
+  linear_start_addr: 0x1020000
+  physical_start_addr: 0x0
+  partition_size: 0x100000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS8
+  partition_name: CACHE
+  file_name: cache.img
+  is_download: false
+  type: NONE
+  linear_start_addr: 0x1120000
+  physical_start_addr: 0x0
+  partition_size: 0x100000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS9
+  partition_name: USRDATA
+  file_name: userdata.img
+  is_download: false
+  type: NONE
+  linear_start_addr: 0x1220000
+  physical_start_addr: 0x0
+  partition_size: 0x100000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS10
+  partition_name: EMPTY
+  file_name: NONE
+  is_download: false
+  type: NONE
+  linear_start_addr: 0x1320000
+  physical_start_addr: 0x0
+  partition_size: 0x0
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS11
+  partition_name: BMTPOOL
+  file_name: NONE
+  is_download: false
+  type: NONE
+  linear_start_addr: 0xFFFF00a8
+  physical_start_addr: 0x0
+  partition_size: 0x1500000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: false
+  is_reserved: true
+  operation_type: RESERVED
+  reserve: 0x00
+

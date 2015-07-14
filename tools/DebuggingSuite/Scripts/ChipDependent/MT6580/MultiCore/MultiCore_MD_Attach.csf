@@ -1,0 +1,5 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; MT6580_MultiCore_MD_Attach.csf
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+do MultiCore\MultiCore_MD.csf ATTACH

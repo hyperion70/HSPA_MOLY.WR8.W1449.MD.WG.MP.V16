@@ -1,0 +1,166 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; File:         MT6571_MultiCore_MD.cmm
+;
+; Description:  For MT6571 MD reset and go/attach
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+ENTRY &OPT_RESET &OPT_DOWNLOAD
+
+GLOBAL &OPT_JTAG
+
+do MT6571_MD_Info.cmm
+
+;;-> # Option: Serial Wire or Parallel JTAG
+;; 0: Parallel
+;; 1: Serial Wire
+&OPT_JTAG=1
+
+
+
+
+AREA.reset
+winpos 0% 0% 70% 50%
+AREA
+print "== MT6571_MultiCore_MD.cmm =="
+print "OPT_RESET    = &OPT_RESET"
+print "OPT_MD_ELF_PATH = &OPT_MD_ELF_PATH"
+print "OPT_MD_SRC_PATH = &OPT_MD_SRC_PATH"
+print "============================="
+
+print "Load modem elf file..."
+
+IF &OPT_MD_ELF_AUTO_LOAD==0
+(
+    Dialog.file *.elf
+    ENTRY &OPT_ELF_PATH
+)
+
+
+if "&OPT_DOWNLOAD"==""
+(
+    ; load MD symbols
+    print "Loading Modem symbols..."
+    print "&OPT_MD_ELF_PATH"
+    D.LOAD.ELF &OPT_MD_ELF_PATH /RELPATH /PATH &OPT_MD_SRC_PATH /nocode
+    wait 100.ms
+)
+
+print "[Step 3] Press any key to connect modem..."
+inkey &nop
+
+do CR4_connect.cmm
+
+; download MD image
+if "&OPT_DOWNLOAD"!=""
+(
+    print "Downloading modem image to target..."
+    print "&OPT_MD_ELF_PATH"
+    D.LOAD.ELF &OPT_MD_ELF_PATH /RELPATH /PATH &OPT_MD_SRC_PATH
+    wait 100.ms
+)
+
+;provided by Boky Chen
+print "Set modem debug mode" 
+print "[0xA000142C] <- (0x1<<1)"
+D.S A:0xA000142C %LE %WORD DATA.LONG(A:0xA000142C)|(0x1<<1)
+
+
+; Setting attribute of breakpoints
+; Setting HW breakpoint by default
+Break.Select Program OnChip
+Break.Select Hll OnChip
+Break.Select Read OnChip
+Break.Select Write OnChip
+
+
+; Disable WDT
+print "Disable modem WDT"
+print "[0x80050000] <- 0x2200"
+D.S SD:0x80050000 %LE %WORD 0x2200
+; bypass_CTIRQ1_precision_check
+; Avoiding assert at CTIRQ1/2
+print "L1 Assert Bypass" 
+print "[0x83070008] <- 0xABCD"
+D.S SD:0x83070008 %LE %WORD 0xABCD
+print "[0x83070010] <- 0x0003"
+D.S SD:0x83070010 %LE %WORD 0x0003     ; bit0: disable CTIRQ1/2 timing check
+D.S SD:L1_ASSERT_BYPASS %LE %WORD 0x0003 ; for attach case, set L1_ASSERT_BYPASS=3 instead of register write
+
+winclear
+winpos 0% 0% 50% 40%
+d.l
+
+winpos 0% 40% 50% 30%
+sYmbol.Browse
+
+winpos 0% 70% 50% 30%
+Break.List
+
+winpos 50% 0% 50% 40%
+Register
+
+winpos 50% 40% 50% 30%
+Var.Frame /l /c
+
+winpos 50% 70% 50% 30%
+area
+
+
+menu.reset
+menu.reprogram Bring-up_Magic
+menu.reprogram Cortex-R_MPU_View
+
+;; workaournd for burst read issue
+MemMap.MemRange 0xA0000000--0xAFFFFFFF ReadWrite W32
+
+; Nucleus Debugging Tool
+GLOBAL &DBGSUITE_PATH
+&DBGSUITE_PATH="&OPT_MD_SRC_PATH\tools\DebuggingSuite"
+
+if version.build()==0x100000 
+(
+	task.config &DBGSUITE_PATH\Misc\NUCLEUS
+)
+else
+(
+	if y.exist(TCT_Schedule)
+	(
+		task.config &DBGSUITE_PATH\Misc\NUCLEUS
+		menu.reprogram &DBGSUITE_PATH\Misc\NUCLEUS
+	)
+	else
+	(
+		task.config &DBGSUITE_PATH\Misc\NUCLEUS_V2
+		menu.reprogram &DBGSUITE_PATH\Misc\NUCLEUS_V2
+	)
+)
+
+if "&OPT_DOWNLOAD"!=""
+(
+    do Ramfs_config.cmm
+)
+
+if "&OPT_RESET"=="ATTACH"
+(
+    print "Modem is attached! you can start debugging now!"
+)
+else
+(
+    ; Ungate MD
+    print "Ungate modem... Please set breakpoint and GO!"
+    ;*0x8019379C = 0x3567C766
+    ;*0x80190000 = 0
+    ;*0x80195488 = 0xA3B66175
+    D.S a:0x8019379C %LE %LONG 0x3567C766
+    D.S a:0x80190000 %LE %LONG INT_Initialize
+    D.S a:0x80195488 %LE %LONG 0xA3B66175
+)
+break
+
+
+
+
+

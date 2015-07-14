@@ -1,0 +1,127 @@
+																				
+																					[How to modify?]
+1.	For sprintf/snprintf
+		method_1: split the format-string into severals times, and should ensure the variable-parameters 
+		numbers is less than or equal to the max number of support variable-parameters at a time.
+			give two example: 
+			[1]for sprintf:
+					sprintf(dst_str,"%d:%d:%d:%d:%d:%d:%d:%d:%d",a,b,c,d,e,f,g,h,i);
+					can be replaced with:
+					sprintf(dst_str,"%d:%d:%d:%d:%d",a,b,c,d,e);
+					sprintf(dst_str+strlen(dst_str),":%d:%d:%d:%d",f,g,h,i);
+					
+			[2]for snprintf:		
+					snprintf(dst_str,sizeof(dst_str),"%d:%d:%d:%d:%d:%d:%d:%d:%d",a,b,c,d,e,f,g,h,i);
+					can be replaced with:
+					snprintf(dst_str,sizeof(dst_str),"%d:%d:%d:%d:%d",a,b,c,d,e);
+					snprintf(dst_str+strlen(dst_str),sizeof(dst_str)-strlen(dst_str),":%d:%d:%d:%d",f,g,h,i);
+					
+		method_2: use strcpy/strcat/kal_itoa to replace sprintf/snprintf for simple case
+			take sprintf as an example, snprintf is similar:
+					sprintf(dst_str,"a=0x%x,b=%d",a,b);
+					can be replaced with:
+					strcpy(dst_str,"a=0x");
+					kal_itoa(a,dst_str+strlen(dst_str),16);
+					strcat(dst_str,",b=");
+					kal_itoa(b,dst_str+strlen(dst_str),10);
+				
+			*Tips: use kal_itoa should include header file "kal_public_api.h", and strcpy/strcat are c-standard 
+						 library function, also need to include its header file <string.h>.
+						 
+2. For vsprintf/vsnprintf
+		take sprintf as an example, snprintf is similar.
+		generally,we use vsprintf in two-steps as below example:
+				step_1: implementation a internal-function at first. generally, this internal-function is a 
+								variable-parameter type function, so we can use similar methods as before shows on this
+								internal_function: 
+								void internal_vsprintf(char* buf, const char* fmt, ...)
+								{
+									va_list ap;
+									va_start(ap,fmt);
+									vsprintf(buf,fmt,ap); //vsprintf used at this point
+									va_end(ap);	
+								}
+				step_2: user will call another function and indirectly used vsprintf 
+								void func_a(void)
+								{
+									internal_vsprintf(buff,"%d:%d:%d:%d:%d:%d:%d:%d:%d",a,b,c,d,e,f,g,h,i);
+								}
+								so,this case can be replaced with:
+								void func_a(void)
+								{
+									internal_vsprintf(buff,"%d:%d:%d:%d:%d",a,b,c,d,e);
+									internal_vsprintf(buff+strlen(buff),":%d:%d:%d:%d",f,g,h,i);
+								}
+
+3. For sscanf
+		method_1: split src-string and format-string into severals times, and should ensure the variable-parameters
+		numbers is less than or equal to the max number of support variable-parameters at a time.
+		example:
+				sscanf (src_str,"%d:%d:%d:%d:%d:%d:%d:%d:%d",&a,&b,&c,&d,&e,&g,&h,&i,&j);
+				this case can be replaced with:
+				sscanf(src_str_1,"%d:%d:%d:%d:%d",&a,&b,&c,&d,&e);
+				sscanf(src_str_2,":%d:%d:%d:%d",&g,&h,&i,&j);
+		
+		method_2: use strtol to replace sscanf when operation on integer if the format-string is regular
+		example:
+				sscanf(src_str,"%d:%d:%d:%d:%d:%d:%d:%d:%d",&a[0],&a[1],&a[2],&a[3],&a[4],&a[5],&a[6],&a[7],&a[8]);
+				can be replaced with:
+				int i=0,a[9];char* tail_str;
+				while(strlen(src_str))
+				{
+					a[i++] = strtol(src_str,&tail_str,10);
+					src_str = tail_str+1; //skip ':'	
+				}
+				*Tips: there are similar functions in <stdlib.h> which can be used in different scenario: 
+							 strtoll => string convert to long long integer
+							 strtoul => string convert to unsigned long integer
+							 strtoull => string convert to unsigned long long integer
+							 
+		method_3: use strtod to replace sscanf when operation on floating point number if the format-string is regular
+		example:
+				sscanf(src_str,"%f:%f:%f:%f:%f:%f:%f:%f:%f",&a[0],&a[1],&a[2],&a[3],&a[4],&a[5],&a[6],&a[7],&a[8]);
+				can be replaced with:
+				int i=0,a[9];char* tail_str;
+				while(strlen(src_str))
+				{
+					a[i++] = strtol(src_str,&tail_str);
+					src_str = tail_str+1; //skip ':'	
+				}
+
+		method_4: use atoi to replace sscanf for simple case
+		example:
+				sscanf(src_str,"%d",&i);
+				can be replaced with:
+				i = atoi(src_str);
+				
+				*Tips: 
+				[1]there are similar functions in <stdlib.h> which can be used in different scenario: 
+			  		atof => string convert to float
+			  		atol => string convert to long integer
+			  		atoll => string convert to long long integer
+			  [2]these functions(strtol/strtod/atoi/...) are c-standard library function, need to include
+				   its header file <stdlib.h> when using.	
+				   			 		
+4. For vsscanf
+		similar with vsprintf/vsnprintf, we use vsscanf in two-steps as below example:
+				step_1: implementation a internal-function at first. generally, this internal-function is a 
+								variable-parameter type function, so we can use similar methods as before shows on this
+								internal_function: 
+								void internal_vsscanf(char* buf, const char* fmt, ...)
+								{
+									va_list ap;
+									va_start(ap,fmt);
+									vsscanf(buf,fmt,ap); //vsscanf used at this point
+									va_end(ap);	
+								}
+				step_2: user will call another function and indirectly used vsscanf 
+								void func_a(void)
+								{
+									internal_vsscanf(src_str,"%d:%d:%d:%d:%d:%d:%d:%d:%d",&a,&b,&c,&d,&e,&g,&h,&i,&j);
+								}
+								so,this case can be replaced with:
+								void func_a(void)
+								{
+									internal_vsscanf(src_str_1,"%d:%d:%d:%d:%d",&a,&b,&c,&d,&e);
+									internal_vsscanf(src_str_2,":%d:%d:%d:%d",&g,&h,&i,&j);
+								}

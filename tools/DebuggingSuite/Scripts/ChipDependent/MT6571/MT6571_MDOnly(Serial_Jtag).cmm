@@ -1,0 +1,242 @@
+; MT6571_Modem_Only.cmm
+
+ENTRY &Run_Mode
+
+winclear
+system.reset
+
+GLOBAL &AP_SETTING
+GLOBAL &OPT_CHECK_CPU_ID
+GLOBAL &OPT_LOAD_ELF
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;  Settings
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; ## AP tiny BL mode
+;; 0: AP setting is done by CMM
+;; 1: Tiny bootloader downloaded by CVD
+;; 2: Tiny bootloader already downloaded by SP FlashTool
+;; 3: DummyAP download by Flashtool
+&AP_SETTING=1
+
+
+;; ## Modem Boot Mode
+;; 0: Normal
+;; 1: Meta
+&OPT_MD_BOOT_MODE=0
+
+
+;; ## The name of this entry script
+;; It sould be the same the name of this script
+;; It's use for the reset button in the toolbar
+LOCAL  &OPT_THIS_SCRIPT
+&OPT_THIS_SCRIPT="MT6571_MDOnly.cmm"
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+GLOBAL &Run_Mode
+;; Run Mode:
+;; 0 => Normal Start-up
+;; 1 => Full Reset
+;; 2 => Bus hang recovery
+IF "&Run_Mode"==""
+    &Run_Mode=0
+
+
+;; Load ELF
+;; 0: Do not load ELF
+;; 1: Load ELF Symbol Only
+;; 2: Load ELF (Download)
+&OPT_LOAD_ELF=2
+
+IF &AP_SETTING==3
+(
+    &OPT_LOAD_ELF=1
+)
+
+;; Configure TCM
+;; 0: Do not configure TCM in CMM
+;; 1: Configure TCM in CMM
+&OPT_CFG_TCM=0
+
+;; Configure Cache
+;; 0: Do not configure Cache in CMM
+;; 1: Configure Cache in CMM
+&OPT_CFG_CACHE=0
+
+;; Configure MPU
+;; 0: Do not configure MPU in CMM
+;; 1: Configure MPU in CMM
+&OPT_CFG_MPU=0
+
+;; Configure MD PLL
+;; 0: Do not configure MD PLL in CMM
+;; 1: Configure MD PLL in CMM
+&OPT_CFG_PLL=0
+
+;; Configure GPIO (UART)
+;; 0: Do not configure GPIO in CMM
+;; 1: Configure GPIO in CMM
+&OPT_CFG_UART_GPIO=0
+IF &AP_SETTING<3
+(
+	;tiny boot loader won't config MD Uart
+	&OPT_CFG_UART_GPIO=1
+)
+
+
+;; Configure GPIO (SIM)
+;; 0: Do not configure GPIO in CMM
+;; 1: Configure GPIO in CMM
+&OPT_CFG_SIM_GPIO=0
+
+
+
+;; Check CPU ID after connect
+&OPT_CHECK_CPU_ID=0
+
+;; Wait Before Connection
+;; 0: Automatically Connect AP and then try to connect Modem
+;; 1: Wait user input before connection, for checking cmm options
+&OPT_WAIT_BEFORE_CONN=0
+
+;;-> # Option: Serial Wire or Parallel JTAG
+;; 0: Parallel
+;; 1: Serial Wire
+&OPT_JTAG=1
+
+;; MD ELF/Src/BIN Path
+GLOBAL &OPT_MD_ELF_PATH
+GLOBAL &OPT_MD_SRC_PATH
+GLOBAL &OPT_MD_BIN_PATH
+GLOBAL &OPT_MD_START_ADDRESS
+GLOBAL &AP_APB_BASE
+
+GLOBAL &MD_WDT_BASE
+
+do MT6571_MD_Info.cmm ; set MD elf/src/bin in MD_Info.cmm
+
+;; Belows are for button trigger cmm flow
+IF &Run_Mode==1
+(
+;; Full Reset Button
+    &OPT_WAIT_BEFORE_CONN=0
+    print "User Trigger Full Reset"
+)
+IF &Run_Mode==2
+(
+
+;; System Hang Recovery
+    &OPT_WAIT_BEFORE_CONN=0
+    if y.exist(INT_Initialize)
+    (
+        ; It means, we have load ELF before
+        &OPT_LOAD_ELF=0
+    )
+    else
+    (
+        ; otherwise, we load ELF for symbol only
+        &OPT_LOAD_ELF=1
+    )
+    &OPT_CFG_TCM=1
+    &OPT_CFG_CACHE=1
+    &OPT_CFG_MPU=1
+    &OPT_CFG_PLL=1
+
+    print "System Hang Revocery"
+    
+)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;     Information Window                                     ;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;winclear
+AREA.reset
+winpos 0% 0% 30% 53%
+AREA
+
+print "====================================="
+print "==      MT6571 Modem CMM Suite     =="
+print "====================================="
+print "[Option List]"
+print "AP_SETTING           = &AP_SETTING"
+print "OPT_MD_BOOT_MODE     = &OPT_MD_BOOT_MODE"
+;print "OPT_LOAD_RAMFS       = &OPT_LOAD_RAMFS"
+;print "OPT_RAMFS_MODE       = &OPT_RAMFS_MODE"
+;print "OPT_RAMFS_FILENAME   = &OPT_RAMFS_FILENAME"
+print "OPT_MD_ELF_PATH      = &OPT_MD_ELF_PATH"
+print "OPT_MD_SRC_PATH      = &OPT_MD_SRC_PATH"
+print "OPT_MD_BIN_PATH      = &OPT_MD_BIN_PATH"
+print "======================================"
+
+IF &OPT_WAIT_BEFORE_CONN==1
+(
+    print "Press Any Key to Continue ..."
+    inkey
+)
+
+&MD_RESET="RESET"
+IF &AP_SETTING<2
+(
+    ;; CA7 initialization
+    do MT6571_MDOnly_AP.cmm
+	&MD_RESET=""
+)
+
+; Downoad MD binary
+do MT6571_MDOnly_MD.cmm &MD_RESET
+
+
+; Nucleus Debugging Tool
+GLOBAL &DBGSUITE_PATH
+&DBGSUITE_PATH="&OPT_MD_SRC_PATH\tools\DebuggingSuite"
+
+if version.build()==0x100000 
+(
+	task.config &DBGSUITE_PATH\Misc\NUCLEUS
+)
+else
+(
+	if y.exist(TCT_Schedule)
+	(
+		task.config &DBGSUITE_PATH\Misc\NUCLEUS
+		menu.reprogram &DBGSUITE_PATH\Misc\NUCLEUS
+	)
+	else
+	(
+		task.config &DBGSUITE_PATH\Misc\NUCLEUS_V2
+		menu.reprogram &DBGSUITE_PATH\Misc\NUCLEUS_V2
+	)
+)
+
+menu.reset
+menu.reprogram Bring-up_Magic
+menu.reprogram Cortex-R_MPU_View
+
+; setting attribute of breakpoints
+Break.Select Program OnChip
+Break.Select Hll OnChip
+Break.Select Read OnChip
+Break.Select Write OnChip
+
+;; Default Breakpoint Setting Goes to HERE
+
+IF &AP_SETTING!=3
+(
+	;set PC register as INT_Initialize
+    R.S PC INT_Initialize
+)
+
+;; Window Layout, change to anything you like...
+if 0==0
+(
+	winpos 30% 0% 70% 100%
+	d.l
+	winpos 0% 50% 30% 50%
+	var.frame
+)
+print "Modem is Now Online, boot!!"
+
+END

@@ -1,0 +1,26 @@
+ENTRY 
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ARM9_connect.cmm
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+print "Connection to ARM9 ... "
+;; ARM9 Connection
+SYSTEM.reset
+SYSTEM.CPU ARM926EJ
+SYSTEM.JtagClock 5.MHz
+SYSTEM.MULTICORE JTAGACCESSPORT 2
+SYSTEM.MULTICORE COREJTAGPORT 0
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset OFF
+SYSTEM.Option EnReset Off
+SYSTEM.Option TRST off
+SYSTEM.up
+
+; disable PWRUPREQ for entry sleep mode
+; SYSTEM.Option.SYSPWRUPREQ OFF
+
+;; Set base addresses
+&OPT_MD_START_ADDRESS=0x0
+&AP_APB_BASE=0xA0000000
+&MD1_WDT_BASE=0x80050000
+&MD2_WDT_BASE=0x80050000

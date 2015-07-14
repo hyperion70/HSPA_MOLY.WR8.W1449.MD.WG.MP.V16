@@ -1,0 +1,70 @@
+ENTRY &OPT_RESET
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; CA7_connect.cmm
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+winclear
+AREA.reset
+winpos 0% 0% 30% 53%
+AREA
+&NR_CPUS=1
+
+SYStem.reset
+IF "&OPT_RESET"=="RESET"
+(
+    SYStem.OPTION ENRESET ON
+)
+ELSE
+(
+    SYStem.OPTION ENRESET OFF
+)
+
+IF &OPT_JTAG==0
+(
+SYStem.Option ResBreak ON
+	SYStem.Option WaitReset OFF
+)
+else
+(
+&NR_CPUS=1
+SYStem.Option TRST OFF
+SYStem.Option ResBreak OFF
+	SYStem.Option WaitReset ON
+)
+
+
+
+SYStem.JtagClock 10.MHz
+SYStem.CPU CortexA7MPCore
+
+;Setting Core debug register access
+if &NR_CPUS==1
+(
+    SYStem.CONFIG CORENUMBER 1;
+    SYStem.CONFIG COREBASE 0x80070000
+)
+else
+(
+    SYStem.CONFIG CORENUMBER 2;
+    SYStem.CONFIG COREBASE 0x80070000 0x80072000;
+)
+
+IF &OPT_JTAG==0
+(
+System.CONFIG SWDP OFF
+)
+ELSE IF &OPT_JTAG==1
+(
+System.CONFIG SWDP ON  
+)
+
+SYStem.Up
+
+; disable WDT
+D.S SD:0x10007000 %LE %LONG 0x22000000
+
+;; Set base addresses
+&OPT_MD_START_ADDRESS=0x80000000
+&AP_APB_BASE=0x10000000
+&MD_WDT_BASE=0x20050000

@@ -1,0 +1,71 @@
+; MT6580 Set L1 RF as debug GPIO (confirm with MH Kuo)
+
+;AP_GPIO_BASE (from bbreg)
+Local &Base
+Local &Offset
+Local &Mask
+Local &Value
+
+;GPIO3  (Aux Func.7) Offset:0x0054 [12-14] = 7
+;GPIO4  (Aux Func.7) Offset:0x0054 [16-18] = 7
+;GPIO5  (Aux Func.7) Offset:0x0054 [20-22] = 7
+;GPIO6  (Aux Func.7) Offset:0x0054 [24-26] = 7
+;GPIO7  (Aux Func.7) Offset:0x0054 [28-30] = 7
+&Offset=0x0054
+&Mask=0x77777000 ; 0111_0111, 0111_0111, 0111_0000, 0000_0000
+&Value=0x77777000
+&Base=&AP_GPIO_BASE+&Offset
+GOSUB SUB_SETGPIO &Base &Mask &Value GPIO3-7
+
+
+;GPIO79 (Aux Func.1) Offset:0x00E4 [28-30] = 1
+&Offset=0x00E4
+&Mask=0x70000000
+&Value=0x10000000
+&Base=&AP_GPIO_BASE+&Offset
+GOSUB SUB_SETGPIO &Base &Mask &Value GPIO79
+
+;GPIO80 (Aux Func.1) Offset:0x00F4 [0-2] = 1
+;GPIO81 (Aux Func.1) Offset:0x00F4 [4-6] = 1
+;GPIO82 (Aux Func.1) Offset:0x00F4 [8-10] = 1
+;GPIO83 (Aux Func.1) Offset:0x00F4 [12-14] = 1
+;GPIO84 (Aux Func.1) Offset:0x00F4 [16-18] = 1
+;GPIO85 (Aux Func.1) Offset:0x00F4 [20-22] = 1
+;GPIO86 (Aux Func.1) Offset:0x00F4 [24-26] = 1
+;GPIO87 (Aux Func.1) Offset:0x00F4 [28-30] = 1
+&Offset=0x00F4
+&Mask=0x77777777
+&Value=0x11111111
+&Base=&AP_GPIO_BASE+&Offset
+GOSUB SUB_SETGPIO &Base &Mask &Value GPIO80-87
+
+;GPIO88 (Aux Func.1) Offset:0x0104 [0-2] = 1
+;GPIO89 (Aux Func.1) Offset:0x0104 [4-6] = 1
+;GPIO90 (Aux Func.1) Offset:0x0104 [8-10] = 1
+;GPIO91 (Aux Func.1) Offset:0x0104 [12-14] = 1
+;GPIO92 (Aux Func.1) Offset:0x0104 [16-18] = 1
+&Offset=0x0104
+&Mask=0x00077777
+&Value=0x00011111
+&Base=&AP_GPIO_BASE+&Offset
+GOSUB SUB_SETGPIO &Base &Mask &Value GPIO88-92
+
+
+ENDDO
+
+; ======================= SUB ===========================
+SUB_SETGPIO: ;Read and Modify &GPIO_BASE
+ENTRY &GPIO_BASE &GPIO_MASK &GPIO_VALUE &HintString 
+
+;Read
+&tmp=DATA.LONG(SD:&GPIO_BASE)
+PRINT "READ &HintString &GPIO_BASE=&tmp"
+
+;Modify
+&tmp=&tmp&(~&GPIO_MASK)|&GPIO_VALUE
+D.S SD:(&GPIO_BASE) %LE %LONG &tmp
+;Readback to confirm
+&tmp2=DATA.LONG(SD:&GPIO_BASE)
+PRINT "SET &HintString &GPIO_BASE=&tmp (Read back to confirm=&tmp2)"
+
+RETURN

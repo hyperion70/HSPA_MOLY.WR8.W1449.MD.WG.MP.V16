@@ -1,0 +1,52 @@
+&MEM_INIT=0
+
+;enable MP0 L2C 256KB
+;d.s c:0x10200000 %le %long 0x100
+;d.s c:0x10200000 %le %long 0x1100
+
+; disable WDT (to do in ETT_Main)
+;d.s c:0x10212000 %le %long 0x22000064
+d.s c:0x10007000 %le %long 0x22000064
+;D.S SD:0x1011a040 %LE %LONG 0x00000001
+
+;system.mode attach
+;break
+
+;data.set AHB:0xf0800058 %long 0x80f00e00   // means 0xE0000000 ~0xF0000000 will use AXI Master1 
+;data.set AHB:0xf080000c %long 0x400
+;data.set AHB:0xf080000c %long 0x0
+
+if &MEM_INIT==1
+{
+    ; Init DDR
+;    do Rainier_FPGA_DDR.cmm    
+}
+
+;enable L2C share SRAM
+;d.s c:0x10200000 %le %long 0x00001300	;L2C share SRAM and size is 512KB
+;d.s c:0x10200000 %le %long 0x00001100	;L2C share SRAM and size is 256KB
+
+D.S SD:0x10200000 %LE %LONG 0x00000020  ;L2C share SRAM
+d.load.elf ../bin/MT6580_AP_ETT.elf /long
+
+;&ETTStart=0x1200C000
+;data.load.binary  ..\out\MT6735_ETT\BIN\MT6735_ETT.bin &ETTStart
+;core.select 1
+;r.s pc 0x40000000
+;core.select 0
+r.s pc 0x204000
+
+y.spath.reset
+y.spath.srd ../inc
+y.spath.srd ../inc/MT6580
+y.spath.srd ../core/src
+y.spath.srd ../arch/inc
+y.spath.srd ../arch/src/MT6580
+y.spath.srd ../arch/inc/MT6580
+y.spath.srd ../ett/src/MT6580
+y.spath.srd ../drivers\pmic_wrap\src\MT6580
+y.spath.srd ../drivers\pmic\src\MT6580
+y.spath.srd ../ett/src/
+
+d.l
+;go

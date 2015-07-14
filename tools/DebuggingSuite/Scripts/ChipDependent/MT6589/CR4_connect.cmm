@@ -1,0 +1,29 @@
+ENTRY 
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; CR4_connect.cmm
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+print "Connection to CR4 ... "
+;; CR4(MD1) Connection
+SYSTEM.reset
+SYSTEM.CPU CortexR4
+SYSTEM.JtagClock 5.MHz
+;; NOTE: CR4 Corebase address
+;; AHB-AP -> 0x20093000
+;; APB-AP -> 0x90123000 (Default)
+;; In case connection fail or operation abnormal, try the other address
+SYSTEM.MULTICORE COREBASE EAPB:0x90123000 ; CR4 Corebase
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset OFF
+SYSTEM.Option EnReset Off
+SYSTEM.Option TRST off
+SYSTEM.up
+
+;; disable PWRUPREQ for entry sleep mode
+SYSTEM.Option.SYSPWRUPREQ OFF
+
+;; Set base addresses
+&OPT_MD_START_ADDRESS=0x0
+&AP_APB_BASE=0xA0000000
+&MD1_WDT_BASE=0x80050000
+&MD2_WDT_BASE=0x80050000

@@ -1,0 +1,29 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// InTargetReset.men
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ADD
+TOOLBAR
+(
+	SEPARATOR	
+	TOOLITEM "New In target reset " "DO InTargetReset.cmm"
+	[
+
+RRRR   bbb ggggg
+R  RR b      g
+R   R b      g    
+R RR  b      g       
+RR    b      g      
+RRR   b      g      
+R R    b     g      
+R  R   b     g      
+R  R    b    g      
+R  R    b    g      
+R  R     b   g     
+R   R    b   g   
+R   R    b   g    
+R   R bbb    g    
+	]
+
+	
+	SEPARATOR
+)

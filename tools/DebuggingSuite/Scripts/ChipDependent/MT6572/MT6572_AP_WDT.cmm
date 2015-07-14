@@ -1,0 +1,81 @@
+;;================================================
+;; CHIP:        MT6572
+;; PURPOSE:     AP WDT Control
+;; CREATE_DATE: 2013/04/01
+;; NOTE:        Sync with AP side CMM
+;; KnownIssue:  Cannot connect 2 core
+;;================================================
+
+
+;;================================================
+;; Control Code
+;;================================================
+ENTRY &IN_MENU &MODEM
+
+LOCAL &AP_APB_BASE
+
+if "&IN_MENU"=="" && "&MODEM"==""
+(
+;; Default: modem disable AP WDT
+    &AP_APB_BASE=0xA0000000
+    &IN_MENU="M_LET_DOG_HOME"
+)
+else if "&MODEM"=="MODEM"
+(
+    &AP_APB_BASE=0xA0000000
+)
+else
+(
+    &AP_APB_BASE=0x10000000
+)
+
+
+;;-> <<< Menu Switch >>>
+IF "&IN_MENU"=="M_LET_DOG_HOME"
+(
+    GOSUB MENU_LET_DOG_HOME  
+)
+ELSE IF "&IN_MENU"=="M_LET_DOG_HOME_BREAK"
+(
+    GOSUB MENU_LET_DOG_HOME_BREAK  
+)
+
+
+
+;;->   
+;;-> <<< FUCNTIONS >>>
+    
+MENU_LET_DOG_HOME:
+    print "[INFO][MAIN] Disable AP Watchdog"
+    LOCAL &spm_reg
+    &spm_reg=data.long(asd:(&AP_APB_BASE+0x6014))
+    &spm_reg=&spm_reg|0x00400000
+    data.set asd:(&AP_APB_BASE+0x6014) %le %long &spm_reg
+    &spm_reg=&spm_reg&0xFFBFFFFF
+    data.set asd:(&AP_APB_BASE+0x6014) %le %long &spm_reg
+    data.set asd:(&AP_APB_BASE+0x63E4) %le %long 0x0000000F
+    &spm_reg=data.long(asd:(&AP_APB_BASE+0x6314))
+    &spm_reg=&spm_reg&0xFFFFFEFF
+    &spm_reg=&spm_reg|0x0b160000
+    data.set asd:(&AP_APB_BASE+0x6314) %le %long &spm_reg
+    d.s asd:(&AP_APB_BASE+7000) %le %long 0x22000000
+    goto FINISH
+    
+MENU_LET_DOG_HOME_BREAK:
+    print "[INFO][MAIN] Break and Disable AP Watchdog"
+    break
+    LOCAL &spm_reg
+    &spm_reg=data.long(asd:(&AP_APB_BASE+0x6014))
+    &spm_reg=&spm_reg|0x00400000
+    data.set asd:(&AP_APB_BASE+0x6014) %le %long &spm_reg
+    &spm_reg=&spm_reg&0xFFBFFFFF
+    data.set asd:(&AP_APB_BASE+0x6014) %le %long &spm_reg
+    data.set asd:(&AP_APB_BASE+0x63E4) %le %long 0x0000000F
+    &spm_reg=data.long(asd:(&AP_APB_BASE+0x6314))
+    &spm_reg=&spm_reg&0xFFFFFEFF
+    &spm_reg=&spm_reg|0x0b160000
+    data.set asd:(&AP_APB_BASE+0x6314) %le %long &spm_reg
+    d.s asd:(&AP_APB_BASE+7000) %le %long 0x22000000
+    goto FINISH
+
+FINISH:

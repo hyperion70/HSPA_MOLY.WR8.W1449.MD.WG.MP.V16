@@ -1,0 +1,246 @@
+ADD
+TOOLBAR
+(
+  TOOLITEM "MT6580 GO GO GO!" " "
+	[
+
+
+
+     BBBBBB
+    BBBBBBB
+   BBBBB
+   BBBBBBBB
+   BBBBBBBBB
+   BBBB  BBB
+   BBBB  BBB
+   BBBBBBBBB
+    BBBBBBB
+     BBBBB
+
+
+
+	]
+  TOOLITEM "MT6580 GO GO GO!" " "
+	[
+
+
+
+   BBBBBBBB
+   BBBBBBBB
+   BBBBBBBB
+   BBB
+   BBBBBBBBB
+   BBBBBBBBB
+         BBB
+   BBBBBBBBB
+   BBBBBBBB
+   BBBBBBB
+
+
+
+	]
+	  TOOLITEM "MT6580 GO GO GO!" " "
+	[
+
+
+
+    BBBBBBB
+   BBBBBBBBB
+   BBB   BBB
+   BBBBBBBBB
+    BBBBBBB
+    BBBBBBB
+   BBBBBBBBB
+   BBB   BBB
+   BBBBBBBBB
+    BBBBBBB
+
+
+
+	]
+	  TOOLITEM "MT6580 GO GO GO!" " "
+	[
+
+
+
+    BBBBBBB
+   BBBBBBBBB
+   BBBBBBBBB
+   BBB   BBB
+   BBB   BBB
+   BBB   BBB
+   BBB   BBB
+   BBBBBBBBB
+   BBBBBBBBB
+    BBBBBBB
+
+
+
+	]
+	SEPARATOR
+	TOOLITEM "L1 Assert bypass after BREAK" "D.S SD:L1_ASSERT_BYPASS %LE %WORD 0x0003"
+  [
+
+      BB
+     BBBBRRRR
+     BRBBRRRRR
+     BBB    BBR
+ BBBBBB    BBBRR
+ BBBBBR   BBBBRR
+    BBR  RBBBBRR
+    BBR RRR BBRR
+ BB BRRRRR  BBRR
+ BBBB RRR   BBR
+ BBBBB RRRRRBBR
+  BB BBBBRRBBBB
+      BBB  BBBB
+
+
+  ]
+	
+	SEPARATOR
+
+  TOOLITEM "Full Reset (&OPT_THIS_SCRIPT)" "DO &OPT_THIS_SCRIPT 1"
+  [
+
+    XXX
+   XCCX
+  XCCCXXXXXXXXX
+ XCCCCCCCCCCCCX
+ XCCCCCCCCCCCCX
+  XCCCXXXXXXCCX
+   XCCX    XCCX
+    XXX    XCCX
+ XXXX      XCCX
+ XCCX      XCCX
+ XCCXXXXXXXXCCX
+ XCCCCCCCCCCCCX
+ XCCCCCCCCCCCCX
+ XXXXXXXXXXXXXX
+
+  ]
+
+  SEPARATOR
+  TOOLITEM "Back-Up RamFS to File" "DO Ramfs_backup_restore 0 0"
+  [
+
+XXXXXX
+X  @    XX
+XXXXXX XIIX
+X    XXIGGGX
+X  XXXIGGGGGX
+    XIGGGGGGGX
+    XIGGGGGGGX
+     XXIGGGXX
+      XIGGGXxX
+    XXXIGGGXxxX
+  XXxxXIGGGXxxxX
+ XXxxxXIGGGXxxxX
+  XxxxxXXXXxxxXX
+   XxxxxxxxxXX
+    XxxxxxXX
+  ]
+
+  TOOLITEM "Restore RamFS from File" "DO Ramfs_backup_restore 1 0"
+  [
+
+XXXXXX
+X  X
+XXXXXXXXXX
+X    XMMMMX
+X  XXXMRRRX
+     XMRRRX
+     XMRRRX
+    XXMRRRXX
+   XMRRRRRRRX
+   XMRRRRRRRX
+   XXMRRRRRXxX
+ XXxxXMRRRXxxxX
+XxxxxxXMRXxxxxxX
+ XxxxxxXXxxxxXX
+  XxxxxxxxxXX
+  ] 
+
+  SEPARATOR
+  TOOLITEM "MD Clock Monitor" "DO Common\Frequency_Meter 0"
+  [
+
+ b   b bbb   
+ bb bb b  b 
+ bbbbb b  b  
+ b b b b  b  
+ b   b bbb  
+
+xxxxxxxxxxxxxxxx
+xxGGGGGxxxGGGGGx
+xxGxxxGxxxGxxxGx
+xxGxxxGxxxGxxxGx
+xxGxxxGxxxGxxxGx
+xxGxxxGxxxGxxxGx
+GGGxxxGGGGGxxxGG
+xxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx
+  ]
+  
+  SEPARATOR
+  TOOLITEM "System hang Recovery" "DO &OPT_THIS_SCRIPT 2"
+  [
+
+
+  WWWWWWWWWWWW
+  WWWWWWWWWWWW
+  WWWWWRRWWWWW
+  WWWWWRRWWWWW
+  WWWWWRRWWWWW
+  WWRRRRRRRRWW
+  WWRRRRRRRRWW
+  WWWWWRRWWWWW
+  WWWWWRRWWWWW
+  WWWWWRRWWWWW
+  WWWWWWWWWWWW
+  WWWWWWWWWWWW
+
+
+  ]
+  
+  TOOLITEM "Disable Watchdog" "DO HWConfig\MT6580_AP_WDT.cmm M_LET_DOG_HOME MODEM"
+  [
+
+
+        RRRRR
+       RRRRRRR
+      RR    RRR
+     RR    RRRRR
+    yRR   RRR RR
+yyyyyRRyyRRR  RR
+ yyyyRRyRRRy  RR
+    yRRRRRyy  RR
+ yyyyyRRRyyy RR
+yyyyyyyRRRRRRR
+     yy RRRRR
+     yy   yy
+     yy   yy
+
+  ]
+  TOOLITEM "Break and Disable Watchdog" "DO HWConfig\MT6580_AP_WDT.cmm M_LET_DOG_HOME_BREAK MODEM"
+  [
+  
+RR RR
+RR RR   RRRRR
+RR RR  RRRRRRR
+RR RR RR    RRR
+RR RRRR    RRRRR
+    yRR   RRR RR
+yyyyyRRyyRRR  RR
+ yyyyRRyRRRy  RR
+    yRRRRRyy  RR
+ yyyyyRRRyyy RR
+yyyyyyyRRRRRRR
+     yy RRRRR
+     yy   yy
+     yy   yy
+
+   ]
+   SEPARATOR
+    
+)

@@ -1,0 +1,140 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; File:         MT6572_MultiCore_AP.cmm
+;
+; Description:  For MT6572 AP reset and go/attach
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+ENTRY &OPT_RESET
+
+GLOBAL &OPT_JTAG
+
+&OPT_AP_DEBUG=0 ; set 1 if at ap side
+
+do MT6572_MD_Info.cmm
+
+;;-> # Option: Serial Wire or Parallel JTAG
+;; 0: Parallel
+;; 1: Serial Wire
+&elf_filename=filename("&OPT_MD_ELF_PATH")
+;0xa: length of "MT6572_EVB"
+&len=-(length("&elf_filename")-0xa)
+
+if cut("&elf_filename",&len)=="MT6572_EVB"
+(
+   &OPT_JTAG=0
+)
+else
+(
+   &OPT_JTAG=1
+)
+
+
+; Show CVD information window
+winpos 0% 0% 50% 50%
+AREA
+print "== MT6572_MultiCore_AP.cmm =="
+print "OPT_RESET = &OPT_RESET"
+print "============================="
+
+
+print "[Step 1] Press enter to continue master..."
+enter &nop
+
+; CodeViser setting for Cortex-A7
+do CA7_connect.cmm &OPT_RESET
+wait 100.ms
+
+; Setting attribute of breakpoints
+; Setting HW breakpoint by default
+Break.Select Program OnChip
+Break.Select Hll OnChip
+Break.Select Read OnChip
+Break.Select Write OnChip
+
+; Set bit0 for CCCI wait handshake forever
+print "Set modem debug mode"
+print "[0x10001050] <- (0x1<<8)"
+D.S A:0x10001050 %LE %WORD DATA.LONG(A:0x10001050)|(0x1<<8)
+
+
+; Disable DABORT and PABORT breakpoint
+tronchip.set dabort off
+tronchip.set pabort off
+tronchip.set undef  off
+tronchip.set swi  off
+
+; 
+; Linux kernel init
+;
+
+&KernelPath="../../../../kernel/out"
+
+if OS.FILE(&KernelPath/vmlinux)
+(
+    print "loading Linux kernel symbols..."
+    Data.LOAD.Elf &KernelPath/vmlinux /gnu /nocode
+    wait 100.ms
+)
+else
+(
+    print "can't find vmlinux"
+    IF &OPT_AP_DEBUG==1
+    (
+        Dialog.file *.elf
+        entry &elf
+        if OS.FILE("&elf")
+        (
+            Data.LOAD.Elf "&elf" /gnu /nocode
+            wait 100.ms
+        )
+    )
+)
+
+y.spath.reset
+y.spath.srd &KernelPath/init
+y.spath.srd &KernelPath/mm
+y.spath.srd &KernelPath/kernel
+y.spath.srd &KernelPath/kernel/irq
+y.spath.srd &KernelPath/arch/arm/kernel
+y.spath.srd &KernelPath/arch/arm/mm
+y.spath.srd &KernelPath/arch/arm/lib
+y.spath.srd &KernelPath/lib
+y.spath.srd &KernelPath/drivers/serial
+
+
+; Setup Linx awareness
+TASK.CONFIG linux       ; loads Linux awareness (linux.t32)
+MENU.ReProgram linux    ; loads Linux menu (linux.men)
+HELP.FILTER.Add rtoslinux  ; add linux awareness manual to help filter
+
+menu.reprogram AP_Debug; loads Linux menu (linux.men)
+
+IF "&OPT_RESET"=="RESET"
+(
+    
+    ; Wait AP CCCI load modem
+    print "wait 20s until CCCI power on modem..."
+    go
+    wait 20.s
+    break
+    go
+    while(DATA.LONG(A:0x10001050)|(0x1<<8))
+    (
+;        print "Modem image not ready yet, please wait 5 second."
+;        go
+;        wait 100.ms
+;        break
+    )
+    
+    break
+)
+
+print "[Step 2]"
+print "    Please switch to MD side CVD to continue debugging..."
+
+
+DO MT6572_AP_WDT.cmm M_LET_DOG_HOME
+
+enddo

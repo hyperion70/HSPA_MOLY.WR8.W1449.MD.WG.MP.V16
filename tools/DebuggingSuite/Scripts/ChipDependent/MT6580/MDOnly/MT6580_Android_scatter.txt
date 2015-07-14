@@ -1,0 +1,213 @@
+############################################################################################################
+#
+#  General Setting 
+#    
+############################################################################################################
+- general: MTK_PLATFORM_CFG
+  info: 
+    - config_version: V1.1.2
+      platform: MT6580
+      project: evb6580
+      storage: EMMC
+      boot_channel: MSDC_0
+      block_size: 0x20000
+############################################################################################################
+#
+#  Layout Setting
+#
+############################################################################################################
+- partition_index: SYS0
+  partition_name: preloader
+  file_name: preloader_evb6580.bin
+  is_download: true
+  type: SV5_BL_BIN
+  linear_start_addr: 0x0
+  physical_start_addr: 0x0
+  partition_size: 0x40000
+  region: EMMC_BOOT_1
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: BOOTLOADERS
+  reserve: 0x00
+
+- partition_index: SYS1
+  partition_name: pgpt
+  file_name: NONE
+  is_download: false
+  type: NORMAL_ROM
+  linear_start_addr: 0x0
+  physical_start_addr: 0x0
+  partition_size: 0x80000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS2
+  partition_name: seccfg
+  file_name: NONE
+  is_download: false
+  type: NORMAL_ROM
+  linear_start_addr: 0x80000
+  physical_start_addr: 0x80000
+  partition_size: 0x40000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS3
+  partition_name: lk
+  file_name: NONE
+  is_download: false
+  type: NORMAL_ROM
+  linear_start_addr: 0xc0000
+  physical_start_addr: 0xc0000
+  partition_size: 0x60000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS4
+  partition_name: boot
+  file_name: NONE
+  is_download: false
+  type: NORMAL_ROM
+  linear_start_addr: 0x120000
+  physical_start_addr: 0x120000
+  partition_size: 0xa00000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS5
+  partition_name: recovery
+  file_name: NONE
+  is_download: false
+  type: NORMAL_ROM
+  linear_start_addr: 0xb20000
+  physical_start_addr: 0xb20000
+  partition_size: 0xa00000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS6
+  partition_name: secro
+  file_name: NONE
+  is_download: false
+  type: NORMAL_ROM
+  linear_start_addr: 0x1520000
+  physical_start_addr: 0x1520000
+  partition_size: 0x600000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS7
+  partition_name: logo
+  file_name: NONE
+  is_download: false
+  type: NORMAL_ROM
+  linear_start_addr: 0x1b20000
+  physical_start_addr: 0x1b20000
+  partition_size: 0x800000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS8
+  partition_name: expdb
+  file_name: NONE
+  is_download: false
+  type: NORMAL_ROM
+  linear_start_addr: 0x2320000
+  physical_start_addr: 0x2320000
+  partition_size: 0xce0000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS9
+  partition_name: system
+  file_name: NONE
+  is_download: false
+  type: NORMAL_ROM
+  linear_start_addr: 0x3000000
+  physical_start_addr: 0x3000000
+  partition_size: 0x2c000000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS10
+  partition_name: cache
+  file_name: NONE
+  is_download: false
+  type: NORMAL_ROM
+  linear_start_addr: 0x2f000000
+  physical_start_addr: 0x2f000000
+  partition_size: 0x8000000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS11
+  partition_name: userdata
+  file_name: NONE
+  is_download: false
+  type: NORMAL_ROM
+  linear_start_addr: 0x37000000
+  physical_start_addr: 0x37000000
+  partition_size: 0x50000000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: true
+  is_reserved: false
+  operation_type: INVISIBLE
+  reserve: 0x00
+
+- partition_index: SYS12
+  partition_name: sgpt
+  file_name: NONE
+  is_download: false
+  type: NORMAL_ROM
+  linear_start_addr: 0xFFFF0004
+  physical_start_addr: 0xFFFF0004
+  partition_size: 0x80000
+  region: EMMC_USER
+  storage: HW_STORAGE_EMMC
+  boundary_check: false
+  is_reserved: true
+  operation_type: RESERVED
+  reserve: 0x00
+

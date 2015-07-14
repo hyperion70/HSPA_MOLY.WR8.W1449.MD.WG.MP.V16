@@ -1,0 +1,28 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Debug.men
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ADD
+TOOLBAR
+(
+	SEPARATOR
+	TOOLITEM "Debug go " "DO Debug_Go.cmm"
+	[
+
+ GGGGG    GGGGG
+G     G  G     G  
+G        G     G 
+G        G     G
+G        G     G
+G        G     G
+G        G     G
+G GGGGG  G     G 
+G    GG  G     G
+G    GG  G     G
+G    GG  G     G 
+G    GG  G     G 
+ G  G G  G     G 
+  GG  G   GGGGG
+	]
+
+	SEPARATOR
+)

@@ -1,0 +1,9 @@
+; MT6580 Set GPIO pin to MD SIM (confirm with Argus Lin)
+;10005078 0x11000000 ;gpio22-23 set sim mode
+;10005088 0x00000011;gpio24-25 set sim mode
+;10005004 0x03c00000;gpio direction output
+;1000502C 0x03c00000;gpio DOUT low
+    D.S SD:(&AP_APB_BASE+0x5078) %LE %LONG 0x11000000 ;gpio22-23 set sim mode
+    D.S SD:(&AP_APB_BASE+0x5088) %LE %LONG 0x00000011 ;gpio24-25 set sim mode
+    D.S SD:(&AP_APB_BASE+0x5004) %LE %LONG 0x03c00000 ;gpio direction output
+    D.S SD:(&AP_APB_BASE+0x502C) %LE %LONG 0x03c00000 ;gpio DOUT low

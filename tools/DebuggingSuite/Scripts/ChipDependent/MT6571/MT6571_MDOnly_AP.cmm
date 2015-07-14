@@ -1,0 +1,45 @@
+
+
+IF &AP_SETTING==0
+(
+    ;; CMM Only Case
+    PRINT "init EMI/PLL by cmm"    
+    do MT6571_Nocode_.cmm
+)
+ELSE
+(
+	do CA7_connect.cmm RESET	
+    D.S C15:0x01 0; Turn off MMU
+	
+	;serial wire jtag limitation, can not support ResBreak.
+	;We make BOOTROM wait for Jtag attach.
+	;BOOTROM magic number 
+	D.S SD:0x11143350 %LE %LONG 0x4A544147
+	D.S SD:0x11143354 %LE %LONG 0x444C4159
+
+	;config BOOTROM wait time(ms),current config is 2s
+	D.S SD:0x11143358 %LE %LONG 0x7D0
+
+	do CA7_connect.cmm RESET
+	break
+
+	;confirm vend_mac.lu(vend_Chun provide information)
+	; ##disable WDT
+	d.s c:0x10007400 %le %long 0x22000000
+
+	; board init
+	print "loading pre-loader image /noclear /nosymbol"
+	D.S SD:0x10200000 %LE %LONG 0x00000000
+	D.S C15:0x01 0; Turn off MMU
+	d.load.elf ../bin/MT6571_PRELOADER.elf /noclear /nosymbol	
+	D.S C15:0x01 0; Turn off MMU
+	go
+	print "wait pre-loader complete"
+	wait 3.s
+	break
+)
+
+;confirm with vend_CM.Yu
+;Set L2C_SIZE_CFG as 256KB
+D.S SD:0x10200000 %LE %LONG 0x00000020
+enddo

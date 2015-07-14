@@ -1,0 +1,41 @@
+; MT6580_MDOnly_AP.cmm
+
+IF &AP_SETTING==0
+(
+    ;; CMM Only Case
+    PRINT "init EMI by cmm"    
+    do MDOnly\MT6580_Nocode_.cmm
+)
+ELSE
+(
+    do Common\CA7_connect.cmm RESET
+    
+    ; board init
+    ;
+    ; Disable acinactm
+    D.S c:0x1020011C %LE %LONG 0x1
+    D.S c:0x1020011C %LE %LONG 0x1
+    
+    ; Disable wdt
+    D.S c:0x10007000 %LE %LONG 0x22000000
+    
+    ;enable L2C 256KB
+    D.S SD:0x10200000 %LE %LONG 0x00000020 ;Enable L2C share SRAM, cluster 0
+    
+
+    print "loading pre-loader image /noclear /nosymbol"
+    d.load.elf ../bin/MT6580_PRELOADER.elf /noclear /nosymbol
+    MMU.OFF
+    D.S C15:0x1 0   ; Turn off MMU
+    ; Disable wdt
+    D.S c:0x10007000 %LE %LONG 0x22000000
+    R.S T 0
+    ;winclear
+    d.l
+    go
+    print "wait pre-loader complete"
+    wait 3.s
+    break
+)
+
+enddo

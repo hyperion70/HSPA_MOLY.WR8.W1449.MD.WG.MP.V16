@@ -1,0 +1,61 @@
+ENTRY &OPT_RESET
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; CR4_connect.cmm start
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+print "Connection to MD (CR4) ... "
+;; CR4(MD) Connection
+SYSTEM.reset
+
+IF "&OPT_RESET"=="RESET"
+(
+    SYStem.OPTION ENRESET ON
+	SYStem.Option WaitReset 1.s
+)
+ELSE
+(
+    SYStem.OPTION ENRESET OFF
+	SYStem.Option WaitReset ON
+)
+
+SYSTEM.CPU CortexR4
+SYSTEM.JtagClock 10.MHz
+;; NOTE: CR4 Corebase address
+;; AHB-AP -> 0x20093000
+;; APB-AP -> 0x90123000 (Default)
+;; In case connection fail or operation abnormal, try the other address
+SYSTEM.CONFIG COREBASE EAPB:0x90123000 ; CR4 Corebase
+SYStem.Option ResBreak ON
+SYSTEM.Option TRST off
+
+
+IF &OPT_JTAG==0
+(
+System.CONFIG SWDP OFF
+)
+ELSE IF &OPT_JTAG==1
+(
+System.CONFIG SWDP ON  
+)
+
+SYSTEM.up
+
+;; Check CPU ID
+;IF &OPT_CHECK_CPU_ID==1
+;(
+;	print "Check MD CPU ID ... "
+;	&CPU_ID=data.long(C15:0x0000)
+;	IF ((&CPU_ID&(0x410FC140))!=0x410FC140)
+;	(
+;		print "[FAIL]"
+;		print "Expected: 0x410FC140 (CR4)"
+;		print "Read Val: &CPU_ID"
+;		;DIALOG.OK "[MD CONN] Wrong CPU ID: &CPU_ID"
+;		END
+;	)
+;)
+
+;; Set base addresses
+&OPT_MD_START_ADDRESS=0x0
+&AP_APB_BASE=0xA0000000
+&MD_WDT_BASE=0x80050000

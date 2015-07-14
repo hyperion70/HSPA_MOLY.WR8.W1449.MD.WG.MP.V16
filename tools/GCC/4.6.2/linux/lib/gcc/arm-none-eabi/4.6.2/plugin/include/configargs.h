@@ -1,0 +1,7 @@
+/* Generated automatically. */
+static const char configuration_arguments[] = "/home/build/work/jenkins-daily-build/src/gcc/configure --build=i686-linux-gnu --host=i686-linux-gnu --target=arm-none-eabi --prefix=/home/build/work/jenkins-daily-build/install-linux --enable-languages=c,c++ --disable-decimal-float --disable-libffi --disable-libgomp --disable-libmudflap --disable-libquadmath --disable-libssp --disable-libstdcxx-pch --disable-lto --disable-nls --disable-shared --disable-threads --disable-tls --with-gnu-as --with-gnu-ld --with-newlib --with-headers=yes --with-sysroot=/home/build/work/jenkins-daily-build/install-linux/arm-none-eabi --with-gmp=/home/build/work/jenkins-daily-build/build-linux/host-libs/usr --with-mpfr=/home/build/work/jenkins-daily-build/build-linux/host-libs/usr --with-mpc=/home/build/work/jenkins-daily-build/build-linux/host-libs/usr --with-ppl=/home/build/work/jenkins-daily-build/build-linux/host-libs/usr --with-cloog=/home/build/work/jenkins-daily-build/build-linux/host-libs/usr --with-libelf=/home/build/work/jenkins-daily-build/build-linux/host-libs/usr --with-host-libstdcxx='-static-libgcc -Wl,-Bstatic,-lstdc++,-Bdynamic -lm' --with-pkgversion='GNU Tools for ARM Embedded Processors' --with-extra-multilibs=armv6-m,armv7-m,armv7e-m,armv7-r";
+static const char thread_model[] = "single";
+
+static const struct {
+  const char *name, *value;
+} configure_default_options[] = { { NULL, NULL} };

@@ -1,0 +1,188 @@
+;;================================================
+;; CHIP:        MT6571
+;; PURPOSE:     AP Main Flow
+;; CREATE_DATE: 2013/01/25
+;; LAST UPDATE: 2013/02/22
+;; TESTED:      YES (FPGA)
+;;================================================
+;;-> <<< Parameters >>>
+;;================================================
+;; Constant
+;;================================================
+;;-> # Constant: Platform Parameters
+&CONST_DRAM_PHYS_START=0x80100000
+
+;;================================================
+;; Options
+;;================================================
+;;-> # Option: Serial Wire or Parallel JTAG
+;; OPT_JTAG
+;; 0: Parallel
+;; 1: Serial Wire
+;;&OPT_JTAG=0
+
+;;-> # Option: DRAM Parameters
+;; OPT_DRAM_TYPE
+;; 0: FPGA
+;; 1: LPDDR1-400
+;; 2: LPDDR2-400
+;; 3: LPDDR2-533
+;; 4: PCDDR3-667
+&OPT_DRAM_TYPE=2
+
+;; OPT_DRAM_SIZE (Affect kernel ram usage)
+&OPT_DRAM_SIZE=0x20000000
+
+;;-> # Option: Fake BootROM <for FPGA Only>
+;; OPT_FAKE_BOOTROM
+;; 0: Disable
+;; 1: Enable
+&OPT_FAKE_BOOTROM=0
+
+;;-> # Option: Number of CPUs to be Connected
+;; OPT_NR_CPUS
+;; 1: Core0
+;; 2: Core0 & Core1
+&OPT_NR_CPUS=2
+
+;;================================================
+;; Control Code
+;;================================================
+;;->
+;;-> <<< Control Code >>>
+;;-> @ APMCU Connection
+IF 1==1
+(
+SYStem.RESet
+SYStem.Option ENRESET ON
+SYStem.Option ResBreak OFF
+SYStem.Option WaitReset OFF
+
+SYStem.JtagClock 10.MHz
+
+SYStem.CPU CortexA7MPCore
+
+IF &OPT_JTAG==0
+(
+    System.CONFIG SWDP OFF
+)
+ELSE IF &OPT_JTAG==1
+(
+    System.CONFIG SWDP ON
+)
+
+IF &OPT_NR_CPUS==1
+(
+    SYStem.CONFIG CORENUMBER 1
+    SYStem.CONFIG COREBASE 0x80070000
+)
+ELSE
+(
+    SYStem.CONFIG CORENUMBER 2
+    SYStem.CONFIG COREBASE 0x80070000 0x80072000
+)
+
+SYStem.Up
+)
+
+
+;; disable mmu
+D.S C15:0x1 0
+
+;;-> @ APMCU Environment Setting
+;; disable WDT
+d.s asd:0x10007400 %le %long 0x22000000
+
+;;-> @ CTP Ram Booting
+    GOSUB SET_PLL
+    GOSUB SET_EMI
+
+&searchStr="MT6571"
+&pathlen=STRing.SCAN(OS.PWD(),"&searchStr",0)+STRing.LEN("&searchStr")
+&ctpPath=STRing.MID(OS.PWD(), 0, &pathlen)
+
+;Data.LOAD.Elf ..\out\MT6571_EVB\BIN\MT6571_EVB.elf /long /StripPART "&searchStr" /PATH "&ctpPath"
+
+    IF &OPT_NR_CPUS==1
+    (
+        Register.Set PC 0x82204000
+    )
+    ELSE
+    (
+        CORE.select 0
+        Register.Set PC 0x82204000
+    )
+
+    ;GOSUB SET_CTP_SPATH
+
+;;->
+;;-> <<< COMMON SCRIPT FOOTER >>>
+;;-> @ Set default breakpoints to HW
+Break.Select Program OnChip
+Break.Select Hll OnChip
+Break.Select Spot OnChip
+Break.Select Read OnChip
+Break.Select Write OnChip
+
+;; List code
+;d.l
+
+GOSUB SET_END
+
+SET_PLL:
+    IF (&OPT_DRAM_TYPE==0)
+    (
+        ;; Do nothing for FPGA
+    )
+    ELSE IF ((&OPT_DRAM_TYPE==1)||(&OPT_DRAM_TYPE==2))
+    (
+        do MT6571_PLL_Init.cmm 200
+    )
+    ELSE IF (&OPT_DRAM_TYPE==3)
+    (
+        do MT6571_PLL_Init.cmm 266
+    )
+    ELSE IF (&OPT_DRAM_TYPE==4)
+    (
+        do MT6571_PLL_Init.cmm 333
+    )
+    ELSE
+    (
+        print "[FATAL] Illegal OPT_DRAM_TYPE (&OPT_DRAM_TYPE)"
+        END
+    )
+    RETURN
+
+SET_EMI:
+    IF (&OPT_DRAM_TYPE==0)
+    (
+        ;; FPGA
+        do MT6571_EMI_Init.cmm FPGA
+    )
+    ELSE IF (&OPT_DRAM_TYPE==1)
+    (
+        ;; LPDDR-400
+        do MT6571_EMI_Init.cmm LPDDR1-400
+    )
+    ELSE IF (&OPT_DRAM_TYPE==2)
+    (
+        ;; LPDDR2-400
+        do MT6571_EMI_Init.cmm LPDDR2-400
+    )
+    ELSE IF (&OPT_DRAM_TYPE==3)
+    (
+        ;; LPDDR2-533
+        do MT6571_EMI_Init.cmm LPDDR2-533
+    )
+    ;ELSE IF (&OPT_DRAM_TYPE==3)
+    ;(
+        ;; PCDDR3-667 << TBD >>
+    ;)
+    ELSE
+    (
+        print "[FATAL][MAIN] Illegal OPT_DRAM_TYPE (&OPT_DRAM_TYPE)"
+        END
+    )
+    RETURN
+
+SET_END:

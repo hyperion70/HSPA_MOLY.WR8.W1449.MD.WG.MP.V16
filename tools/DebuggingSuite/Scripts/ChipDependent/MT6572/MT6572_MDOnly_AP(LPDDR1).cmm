@@ -1,0 +1,33 @@
+
+
+IF &AP_SETTING==0
+(
+do CA7_connect.cmm RESET
+do CR4_connect.cmm 
+
+; ##disable AP WDT
+d.s c:0xA0007000 %le %long 0x22000000
+
+; AP config is done by cmm
+print "do AP config by cmm"
+do MT6572_PLL_Init_CR4.cmm 200
+do MT6572_EMI_Init_CR4.cmm LPDDR1-400
+)
+ELSE
+(
+do CA7_connect.cmm RESET
+
+; ##disable WDT
+d.s c:0x10007000 %le %long 0x22000000
+
+; board init
+print "loading pre-loader image /noclear /nosymbol"
+D.S SD:0x10200000 %LE %LONG 0x00000000
+d.load.elf ../bin/MT6572_PRELOADER(LPDDR1).elf /noclear /nosymbol
+)
+
+go
+wait 3.s
+break
+D.S SD:0x10200000 %LE %LONG 0x00000020
+enddo

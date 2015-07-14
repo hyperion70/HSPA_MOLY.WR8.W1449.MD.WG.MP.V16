@@ -1,0 +1,20 @@
+;; ## The name of this entry script
+;; It sould be the same the name of this script
+;; It's use for the reset button in the toolbar
+LOCAL  &OPT_THIS_SCRIPT
+&OPT_THIS_SCRIPT="MT6572_MDOnly(SPV).cmm"
+
+;; Connect AP, reset, wait ccci load modem image, break
+do MT6572_MultiCore_AP.cmm RESET
+
+go
+
+print "[Step 2.5] After AP idle, press any key to connect modem..."
+inkey &nop
+break
+
+;; Connect MD(Attach), download modem image, clean fs
+do MT6572_MultiCore_MD.cmm RESET DOWNLOAD
+
+
+

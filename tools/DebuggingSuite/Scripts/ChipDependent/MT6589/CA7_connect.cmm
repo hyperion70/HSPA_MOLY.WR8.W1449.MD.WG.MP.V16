@@ -1,0 +1,33 @@
+ENTRY &OPT_RESET
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; CA7_connect.cmm
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+print "Connection to CA7 ... "
+;; CA7 Connection
+SYSTEM.reset
+IF "&OPT_RESET"=="RESET"
+(
+    SYSTEM.OPTION ENRESET ON
+    SYSTEM.Option ResBreak ON
+)
+ELSE
+(
+    SYSTEM.OPTION ENRESET OFF
+    SYSTEM.Option ResBreak OFF
+)
+SYSTEM.Option WaitReset OFF
+SYSTEM.JtagClock 10.MHz
+SYSTEM.CPU CortexA7MPCore
+
+;Setting Core debug register access
+SYSTEM.CONFIG CORENUMBER 1;
+SYSTEM.MULTICORE COREBASE 0x80070000
+SYSTEM.Up
+
+;; Set base addresses
+&OPT_MD_START_ADDRESS=0x80000000
+&AP_APB_BASE=0x10000000
+&MD1_WDT_BASE=0x20050000
+&MD2_WDT_BASE=0x30050000
