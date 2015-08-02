@@ -85,7 +85,7 @@ OTP_SUPPORT = FALSE
   #   FALSE -> TRUE
   #   TRUE -> FALSE
 
-BAND_SUPPORT = QUAD
+BAND_SUPPORT = DUAL900
   # Description:
   #   Described the support band of RF
   # Option Values:
@@ -130,7 +130,7 @@ UMTS_RF_MODULE = CUSTOM_MT6166_92_SKY_1
   #   Non-switchable
 
 # ------------------------------ Verno information
-VERNO = MOLY.WR8.W1449.MD.WG.MP.V16
+VERNO = MOLY.WR8.W1449.MD.WG.MP.P17
 BUILD = BUILD_NO
 BRANCH = WR8.W1449.MD.WG.MP
 # ------------------------------ System configurations
